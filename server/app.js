@@ -4,18 +4,24 @@ import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 //import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
-import userRoutes from './routes/userRoutes.js'
+
 import authRoutes from './routes/authRoutes.js'
-import orderRoutes from './routes/orderRoutes.js'
-import productRoutes from './routes/productRoutes.js'
+
 import adminRoutes from './routes/adminRoutes.js'
 import errorHandler from './middleware/errorHandler.js'
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
 
 //const routes = require('./routes');
 //const errorHandler = require('./middleware/errorHandler');
 //const logger = require('./utils/logger');
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Security middleware
 // Body parsing middleware
@@ -24,6 +30,8 @@ app.use(helmet());
 app.use(cookieParser())
 app.use(cors());
 
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 const limiter = rateLimit({
@@ -41,11 +49,11 @@ app.use('/api', limiter);
 //app.use(morgan('combined', { stream: { write: message => logger.info(message) } }));
 
 // Routes
-app.use('/api/user', userRoutes);
+//app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/order', orderRoutes);
+//app.use('/api/order', orderRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/product', productRoutes);
+//app.use('/api/product', productRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

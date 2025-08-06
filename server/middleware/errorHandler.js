@@ -36,6 +36,32 @@ const errorHandler = (err, req, res, next) => {
     error = new AppError(message, 401);
   }
 
+    // Multer errors (file upload)
+  if (err.name === 'MulterError') {
+    let message = 'Erreur de téléchargement de fichier';
+    
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'Fichier trop volumineux (max 5MB)';
+    } else if (err.code === 'LIMIT_FILE_COUNT') {
+      message = 'Trop de fichiers (max 5 images)';
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      message = 'Champ de fichier inattendu';
+    }
+    
+    error = new AppError(message, 400);
+  }
+
+  // File type validation error
+  if (err.message && err.message.includes('Only image files are allowed')) {
+    error = new AppError('Seuls les fichiers image sont autorisés', 400);
+  }
+
+  // Cloudinary errors
+  if (err.message && err.message.includes('cloudinary')) {
+    error = new AppError('Erreur de téléchargement d\'image', 500);
+  }
+
+
   
   res.status(error.statusCode || 500).json({
     success: false,
