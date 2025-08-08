@@ -6,12 +6,13 @@ import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 
 import authRoutes from './routes/authRoutes.js'
-
+import orderRoutes from './routes/orderRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import cartRoutes from './routes/cartRoutes.js'
 import errorHandler from './middleware/errorHandler.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+
 
 
 //const routes = require('./routes');
@@ -51,8 +52,9 @@ app.use('/api', limiter);
 // Routes
 //app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
-//app.use('/api/order', orderRoutes);
+app.use('/api/order', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/cart', cartRoutes);
 //app.use('/api/product', productRoutes);
 
 // Error handling middleware
