@@ -67,11 +67,6 @@ const schemas = {
       "number.integer": "Le stock doit être un nombre entier",
       "any.required": "Le stock est obligatoire",
     }),
-    brand: joi.string().min(2).max(50).trim().required().messages({
-      "string.min": "La marque doit contenir au moins 2 caractères",
-      "string.max": "La marque ne peut pas dépasser 50 caractères",
-      "any.required": "La marque est obligatoire",
-    }),
     sku: joi.string().max(20).trim().optional().messages({
       "string.max": "Le SKU ne peut pas dépasser 20 caractères",
     }),
