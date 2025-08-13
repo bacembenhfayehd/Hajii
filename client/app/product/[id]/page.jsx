@@ -13,20 +13,49 @@ import React from "react";
 const Product = () => {
 
     const { id } = useParams();
-
-    const { products, router, addToCart } = useAppContext()
-
+    const { products = [], router, addToCart, getAllProducts } = useAppContext();
     const [mainImage, setMainImage] = useState(null);
     const [productData, setProductData] = useState(null);
+    
 
     const fetchProductData = async () => {
-        const product = products.find(product => product._id === id);
-        setProductData(product);
-    }
+        try {
+            
+            const productArray = Array.isArray(products) ? products : [];
+            
+            // Recherche dans les produits existants
+            let product = productArray.find(product => product?._id === id);
+
+            // Si non trouvé, fetch depuis l'API
+            if (!product) {
+                const response = await getAllProducts();
+                const apiProducts = response?.products || [];
+                product = apiProducts.find(p => p?._id === id);
+            }
+
+            if (product) {
+                setProductData(product);
+                setMainImage(product.images?.[0]?.url || '/placeholder.jpg');
+                
+               
+            } else {
+                router.push('/404'); // Redirection si produit non trouvé
+            }
+        } catch (error) {
+            console.error("Error fetching product:", error);
+        } finally {
+            
+        }
+    };
 
     useEffect(() => {
-        fetchProductData();
-    }, [id, products.length])
+        if (id) {
+            fetchProductData();
+        }
+    }, [id]);
+
+  
+
 
     return productData ? (<>
         <Navbar />
@@ -44,7 +73,7 @@ const Product = () => {
                     </div>
 
                     <div className="grid grid-cols-4 gap-4">
-                        {productData.image.map((image, index) => (
+                        {productData.images.map((image, index) => (
                             <div
                                 key={index}
                                 onClick={() => setMainImage(image)}
@@ -85,10 +114,8 @@ const Product = () => {
                         {productData.description}
                     </p>
                     <p className="text-3xl font-medium mt-6">
-                        ${productData.offerPrice}
-                        <span className="text-base font-normal text-gray-800/60 line-through ml-2">
-                            ${productData.price}
-                        </span>
+                        DT {productData.price}
+                        
                     </p>
                     <hr className="bg-gray-600 my-6" />
                     <div className="overflow-x-auto">
@@ -103,7 +130,7 @@ const Product = () => {
                                     <td className="text-gray-800/50 ">Multi</td>
                                 </tr>
                                 <tr>
-                                    <td className="text-gray-600 font-medium">Category</td>
+                                    <td className="text-gray-600 font-medium">Categorie</td>
                                     <td className="text-gray-800/50">
                                         {productData.category}
                                     </td>
@@ -128,7 +155,7 @@ const Product = () => {
                     <div className="w-28 h-0.5 bg-orange-600 mt-2"></div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6 pb-14 w-full">
-                    {products.slice(0, 5).map((product, index) => <ProductCard key={index} product={product} />)}
+                    {products.slice(0, 5).map((product) => <ProductCard key={product._id} product={product} />)}
                 </div>
                 <button className="px-8 py-2 mb-16 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
                     See more

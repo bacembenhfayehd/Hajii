@@ -5,12 +5,52 @@ import Image from "next/image";
 import Loading from "@/components/Loading";
 import { AdminContext } from "@/context/AdminContext";
 import { Edit, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import EditProductModal from "@/components/EditProductModal";
 
 const ProductList = () => {
-  const { getAllProducts } = useContext(AdminContext);
-
+  const { getAllProducts,updateProduct } = useContext(AdminContext);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+
+  const handleEditClick = (product) => {
+  setSelectedProduct(product);
+  setIsModalOpen(true);
+};
+
+const handleModalClose = () => {
+  setIsModalOpen(false);
+  setSelectedProduct(null);
+};
+
+const handleUpdate = async (updatedData) => {
+  try {
+    // Filtrer les champs modifiés seulement (optionnel)
+    const changedFields = {};
+    if (updatedData.name !== selectedProduct.name) changedFields.name = updatedData.name;
+    if (updatedData.category !== selectedProduct.category) changedFields.category = updatedData.category;
+    if (updatedData.price !== selectedProduct.price) changedFields.price = parseFloat(updatedData.price);
+    
+    // Utiliser toast.promise pour UX
+    await toast.promise(
+      updateProduct(selectedProduct._id, changedFields),
+      {
+        loading: 'Mise à jour en cours...',
+        success: 'Produit mis à jour avec succès!',
+        error: (err) => `Erreur: ${err.message}`,
+      }
+    );
+    fetchProducts();
+    
+  } catch (error) {
+    toast.error(error.message)
+  }
+};
+
+ 
 
   const fetchProducts = async () => {
     try {
@@ -22,6 +62,35 @@ const ProductList = () => {
       toast.error(`Erreur: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (pdtID) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/admin/products/${pdtID}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Échec de la suppression");
+      }
+      const result = await response.json();
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product._id !== pdtID)
+      );
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Erreur:", error);
+      fetchProducts();
+      toast.error(error.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -85,19 +154,15 @@ const ProductList = () => {
                     <td className="px-4 py-3 max-sm:hidden">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => {
-                            /* Ouvrir modal de modification */
-                          }}
-                          className="p-2 text-black-600 hover:bg-black-50 rounded-md transition-colors"
+                          onClick={() => handleEditClick(product) }
+                          className="p-2 cursor-pointer text-black-600 hover:bg-black-50 rounded-md transition-colors"
                           title="Modifier"
                         >
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => {
-                            /* Logique de suppression */
-                          }}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+                          onClick={() => handleDelete(product)}
+                          className="p-2 cursor-pointer text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
                           title="Supprimer"
                         >
                           <Trash2 size={16} />
@@ -111,6 +176,12 @@ const ProductList = () => {
           </div>
         </div>
       )}
+      <EditProductModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onUpdate={handleUpdate}
+      />
     </div>
   );
 };

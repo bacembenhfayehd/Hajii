@@ -13,6 +13,7 @@ router.use(authenticate);
 // Routes pour les utilisateurs
 router.post('/', orderController.createOrder);
 router.get('/my-orders', orderController.getUserOrders);
+
 router.get('/:id', orderController.getOrderById);
 router.patch('/:id/cancel', orderController.cancelOrder);
 

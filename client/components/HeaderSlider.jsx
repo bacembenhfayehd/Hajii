@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
+import one from '../assets/parfums-homme-anaAbyadh-50-removebg-preview.png'
+import two from '../assets/yeux-mascara-topface-23-removebg-preview.png'
+import three from '../assets/skincare-ecransolaire-cytolsun-teinte-beige-sable-35-removebg-preview.png'
 
 const HeaderSlider = () => {
   const sliderData = [
@@ -10,7 +13,7 @@ const HeaderSlider = () => {
       offer: "Limited Time Offer 30% Off",
       buttonText1: "Buy now",
       buttonText2: "Find more",
-      imgSrc: assets.header_headphone_image,
+      imgSrc: one,
     },
     {
       id: 2,
@@ -18,7 +21,7 @@ const HeaderSlider = () => {
       offer: "Hurry up only few lefts!",
       buttonText1: "Shop Now",
       buttonText2: "Explore Deals",
-      imgSrc: assets.header_playstation_image,
+      imgSrc: two,
     },
     {
       id: 3,
@@ -26,7 +29,7 @@ const HeaderSlider = () => {
       offer: "Exclusive Deal 40% Off",
       buttonText1: "Order Now",
       buttonText2: "Learn More",
-      imgSrc: assets.header_macbook_image,
+      imgSrc: three,
     },
   ];
 

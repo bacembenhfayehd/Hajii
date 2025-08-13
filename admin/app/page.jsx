@@ -35,7 +35,18 @@ const AddProduct = () => {
     {
       loading: 'Création du produit en cours...',
       success: 'Produit créé avec succès!',
-      error: (err) => `Erreur: ${err.message}`,
+      error: (err) => {
+      if (err.response?.data?.data?.errors) {
+        const errorMessages = err.response.data.data.errors
+          .map(error => `${error.field}: ${error.message}`)
+          .join('\n');
+        
+        return `Erreurs de validation:\n${errorMessages}`;
+      }
+      
+      return `Erreur: ${err.message}`;
+    }
+  
     }
   ).then(() => {
     

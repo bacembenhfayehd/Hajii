@@ -2,6 +2,7 @@ import express from 'express';
 import { upload } from '../utils/cloudinary.js';
 import { validateBulkStockUpdate, validateMongoId, validateProductCreate, validateProductQuery, validateProductUpdate } from '../middleware/validaton.js';
 import { addProduct, bulkUpdateStock, deleteProduct, deleteProductImage, getAllProducts, getProduct, getProductStats, updateProduct } from '../controllers/product-controller.js';
+import orderController from '../controllers/order-controller.js';
 
 
 const router = express.Router();
@@ -46,5 +47,8 @@ router.patch('/products/bulk-stock',
   validateBulkStockUpdate,
   bulkUpdateStock
 );
+
+
+router.get('/orders', orderController.getAllOrders);
 
 export default router;
