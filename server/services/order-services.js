@@ -1,60 +1,128 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import helpers from '../utils/helpers.js';
+import Cart from '../models/Cart.js'
+import User from '../models/User.js'
+import { sendOrderConfirmationEmail } from '../utils/emailService.js';
 
 const { AppError } = helpers;
 
 class OrderService {
   // Créer une nouvelle commande
   async createOrder(userId, orderData) {
-    const { items, shippingAddress, paymentMethod, notes } = orderData;
+  const { items, shippingAddress, paymentMethod, notes, deliveryType, phone } = orderData;
+  
+  if (!phone || phone.toString().trim().length === 0) {
+    throw new AppError('Le numéro de téléphone est requis', 400);
+  }
 
-    // Vérifier la disponibilité des produits et calculer les prix
-    const orderItems = [];
-    let totalAmount = 0;
+  // Validation des données en fonction du type de livraison
+  if (deliveryType === 'delivery') {
+    if (!shippingAddress) {
+      throw new AppError('Shipping address is required for delivery orders', 400);
+    }
+    if (!paymentMethod) {
+      throw new AppError('Payment method is required for delivery orders', 400);
+    }
+  } else if (deliveryType === 'pickup' || deliveryType === 'in_store') {
+    // Pour le retrait, on nettoie les données non nécessaires
+    if (paymentMethod) {
+      throw new AppError('Payment method should not be provided for pickup orders', 400);
+    }
+  }
 
-    for (const item of items) {
-      const product = await Product.findById(item.product);
-      
-      if (!product) {
-        throw new AppError(`Produit avec l'ID ${item.product} introuvable`, 404);
-      }
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new AppError('Au moins un article est requis', 400);
+  }
 
-      if (product.stock < item.quantity) {
-        throw new AppError(`Stock insuffisant pour ${product.name}. Stock disponible: ${product.stock}`, 400);
-      }
+  // Vérifier la disponibilité des produits et calculer les prix
+  const orderItems = [];
+  let totalAmount = 0; // ✅ Variable pour le total des items
 
-      const subtotal = product.price * item.quantity;
-      
-      orderItems.push({
-        product: product._id,
-        name: product.name,
-        price: product.price,
-        quantity: item.quantity,
-        subtotal
-      });
-
-      totalAmount += subtotal;
+  for (const item of items) {
+    const product = await Product.findById(item.product);
+    
+    if (!product) {
+      throw new AppError(`Produit avec l'ID ${item.product} introuvable`, 404);
     }
 
-    // Créer la commande
-    const order = new Order({
-      user: userId,
-      items: orderItems,
-      shippingAddress,
-      paymentMethod,
-      notes: notes || '',
-      totalAmount: totalAmount + 7.000 // Ajouter les frais de livraison
+    if (product.stock < item.quantity) {
+      throw new AppError(`Stock insuffisant pour ${product.name}. Stock disponible: ${product.stock}`, 400);
+    }
+
+    const subtotal = product.price * item.quantity;
+    
+    orderItems.push({
+      product: product._id,
+      name: product.name,
+      price: product.price,
+      quantity: item.quantity,
+      subtotal
     });
 
-    await order.save();
-
-    // Décrémenter le stock des produits
-    await this._updateProductStock(items, 'decrement');
-
-    // Populer les détails pour la réponse
-    return await this._populateOrder(order);
+    totalAmount += subtotal; // ✅ Accumulation du total
   }
+
+  // Calculer les coûts
+  const shippingCost = deliveryType === 'pickup' || deliveryType === 'in_store' ? 0 : 7.000;
+  const taxRate = 0.02; // 2%
+  const taxAmount = Math.floor(totalAmount * taxRate); // ✅ Utiliser totalAmount
+  const finalTotal = totalAmount + shippingCost + taxAmount; // ✅ Utiliser totalAmount
+
+  // Préparer les données de la commande
+  const orderDataToSave = {
+    user: userId,
+    items: orderItems,
+    deliveryType,
+    notes: notes || '',
+    shippingCost,
+    phone: phone.toString().trim(),
+    totalAmount: finalTotal
+  };
+
+  // Ajouter les champs conditionnels
+  if (deliveryType === 'delivery') {
+    orderDataToSave.shippingAddress = {
+      street: shippingAddress.street?.trim(),
+      city: shippingAddress.city?.trim(),
+      postalCode: shippingAddress.postalCode?.trim()
+    };
+    orderDataToSave.paymentMethod = paymentMethod;
+  }
+
+  // Créer la commande
+  const order = new Order(orderDataToSave);
+  await order.save();
+
+  // Décrémenter le stock des produits
+  await this._updateProductStock(items, 'decrement');
+  await this._clearUserCart(userId);
+
+  const populatedOrder = await this._populateOrder(order);
+
+  // AJOUTER ce bloc après la population de l'ordre :
+  try {
+    // Récupérer les informations utilisateur pour l'email
+    const user = await User.findById(userId).select('name email');
+    
+    if (user && user.email) {
+      // Envoyer l'email de confirmation de manière asynchrone
+      const emailResult = await sendOrderConfirmationEmail(populatedOrder, user);
+      
+      if (emailResult.success) {
+        console.log(`Email de confirmation envoyé à ${user.email} pour la commande ${populatedOrder.orderNumber}`);
+      } else {
+        console.warn(`Échec d'envoi email pour la commande ${populatedOrder.orderNumber}:`, emailResult.error);
+      }
+    }
+  } catch (emailError) {
+    // On log l'erreur mais on ne fait pas échouer la création de commande
+    console.error('Erreur lors de l\'envoi de l\'email de confirmation:', emailError);
+  }
+
+  return populatedOrder;
+}
+
 
   // Récupérer les commandes d'un utilisateur
   async getUserOrders(userId, queryParams) {
@@ -221,6 +289,24 @@ class OrderService {
 
     await Promise.all(operations);
   }
+
+  async _clearUserCart(userId) {
+  try {
+    // Supposons que vous avez un modèle Cart
+    await Cart.findOneAndUpdate(
+      { user: userId },
+      { 
+        items: [],
+        total: 0,
+        itemCount: 0
+      }
+    );
+    console.log(`Panier vidé pour l'utilisateur: ${userId}`);
+  } catch (error) {
+    console.error('Erreur lors du vidage du panier:', error);
+    // Ne pas faire échouer la commande si le vidage du panier échoue
+  }
+}
 
   async _restoreProductStock(orderItems) {
     const operations = orderItems.map(item => 

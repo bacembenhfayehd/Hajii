@@ -1,25 +1,81 @@
-'use client'
-import {  userDummyData } from "@/assets/assets";
+"use client";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 export const AppContext = createContext();
 
 export const useAppContext = () => {
-    return useContext(AppContext)
-}
+  return useContext(AppContext);
+};
 
 export const AppContextProvider = (props) => {
+  const currency = process.env.NEXT_PUBLIC_CURRENCY;
+  const router = useRouter();
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY
-    const router = useRouter()
+  const [userData, setUserData] = useState(false);
+  const [isSeller, setIsSeller] = useState(true);
+  const [cartCount, setCartCount] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [address, setAddress] = useState({
+    city: "",
+    street: "",
+    postalCode: "",
+    notes: "",
+    phone: "",
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-    
-    const [userData, setUserData] = useState(false)
-    const [isSeller, setIsSeller] = useState(true)
-    const [cartItems, setCartItems] = useState({})
+  // Récupérer le panier depuis l'API
+  const fetchCart = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) return;
 
-    const getAllProducts = async (filters = {}) => {
+      setLoading(true);
+      const response = await fetch("http://localhost:5000/api/cart/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setCartCount(result.data.cart.itemCount || 0);
+        setCartItems(result.data.cart.items || []);
+        setTotal(result.data.cart.total);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du panier:", error);
+      setCartCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Charger le panier au montage
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  // Fonction pour rafraîchir le panier
+  const refreshCart = useCallback(() => {
+    const token = localStorage.getItem("auth-token");
+    if (token) fetchCart();
+  }, [fetchCart]);
+
+  const getAllProducts = async (filters = {}) => {
     try {
       const params = new URLSearchParams();
 
@@ -53,74 +109,540 @@ export const AppContextProvider = (props) => {
     }
   };
 
-    const fetchUserData = async () => {
-        setUserData(userDummyData)
+  const addToCart = useCallback(async (productId, quantity = 1) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) {
+      return addToLocalCart(productId, quantity);
     }
 
-    const addToCart = async (itemId) => {
+      setLoading(true);
 
-        let cartData = structuredClone(cartItems);
-        if (cartData[itemId]) {
-            cartData[itemId] += 1;
-        }
-        else {
-            cartData[itemId] = 1;
-        }
-        setCartItems(cartData);
+      const response = await fetch("http://localhost:5000/api/cart/add", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          product: productId,
+          quantity: quantity,
+        }),
+      });
 
+      const result = await response.json();
+
+      if (result.success) {
+        setCartCount(result.data.cart.itemCount || 0);
+        setCartItems(result.data.cart.items || []);
+        setTotal(result.data.cart.total);
+
+        return { success: true, message: result.message };
+      } else {
+        console.error("Erreur lors de l'ajout au panier:", result.message);
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout au panier:", error);
+      return { success: false, message: "Erreur de connexion" };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
+  const addToLocalCart = (productId, quantity) => {
+  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
+  
+  const existingItem = localCart.find(item => item.product === productId);
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    localCart.push({ product: productId, quantity });
+  }
+  
+  localStorage.setItem('local-cart', JSON.stringify(localCart));
+  
+  // Mettre à jour l'état local
+  setCartItems(localCart);
+  setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+  
+  return { success: true, message: "Produit ajouté au panier" };
+};
+
+  const updateCartItem = useCallback(async (productId, quantity) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+     
+
+      if (quantity < 1) {
+        return {
+          success: false,
+          message: "La quantité doit être supérieure à 0",
+        };
+      }
+
+       if (!token) {
+      return updateLocalCartItem(productId, quantity);
     }
 
-    const updateCartQuantity = async (itemId, quantity) => {
+      setLoading(true);
 
-        let cartData = structuredClone(cartItems);
-        if (quantity === 0) {
-            delete cartData[itemId];
-        } else {
-            cartData[itemId] = quantity;
+      const response = await fetch(
+        `http://localhost:5000/api/cart/item/${productId}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ quantity }),
         }
-        setCartItems(cartData)
+      );
 
+      const result = await response.json();
+
+      if (result.success) {
+        // Mettre à jour le state local
+        setCartCount(result.data.cart.itemCount || 0);
+        setCartItems(result.data.cart.items || []);
+        setTotal(result.data.cart.total);
+
+        return { success: true, message: result.message };
+      } else {
+        console.error("Erreur lors de la mise à jour:", result.message);
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour:", error);
+      return { success: false, message: "Erreur de connexion" };
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    const getCartCount = () => {
-        let totalCount = 0;
-        for (const items in cartItems) {
-            if (cartItems[items] > 0) {
-                totalCount += cartItems[items];
-            }
-        }
-        return totalCount;
-    }
 
-    const getCartAmount = () => {
-        let totalAmount = 0;
-        for (const items in cartItems) {
-            let itemInfo = products.find((product) => product._id === items);
-            if (cartItems[items] > 0) {
-                totalAmount += itemInfo.offerPrice * cartItems[items];
-            }
-        }
-        return Math.floor(totalAmount * 100) / 100;
-    }
-
+  const updateLocalCartItem = (productId, quantity) => {
+  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
+  
+  const itemIndex = localCart.findIndex(item => item.product === productId);
+  if (itemIndex !== -1) {
+    localCart[itemIndex].quantity = quantity;
+    localStorage.setItem('local-cart', JSON.stringify(localCart));
     
+    // Mettre à jour l'état local
+    setCartItems(localCart);
+    setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+    
+    return { success: true, message: "Quantité mise à jour" };
+  }
+  
+  return { success: false, message: "Produit non trouvé dans le panier" };
+};
 
-    useEffect(() => {
-        fetchUserData()
-    }, [])
-
-    const value = {
-        currency, router,
-        isSeller, setIsSeller,
-        userData, fetchUserData,
-        cartItems, setCartItems,
-        addToCart, updateCartQuantity,
-        getCartCount, getCartAmount,getAllProducts
+  // Fonction pour diminuer la quantité d'un produit dans le panier
+  const decreaseItemQuantity = useCallback(async (productId) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+        if (!token) {
+      return decreaseLocalCartItem(productId);
     }
 
-    return (
-        <AppContext.Provider value={value}>
-            {props.children}
-        </AppContext.Provider>
-    )
+      setLoading(true);
+
+      const response = await fetch(
+        `http://localhost:5000/api/cart/item/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Mettre à jour le state local
+        setCartCount(result.data.cart.itemCount || 0);
+        setCartItems(result.data.cart.items || []);
+        setTotal(result.data.cart.total);
+
+        return { success: true, message: result.message };
+      } else {
+        console.error("Erreur lors de la diminution:", result.message);
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Erreur lors de la diminution:", error);
+      return { success: false, message: "Erreur de connexion" };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
+  const decreaseLocalCartItem = (productId) => {
+  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
+  
+  const itemIndex = localCart.findIndex(item => item.product === productId);
+  if (itemIndex !== -1) {
+    localCart[itemIndex].quantity -= 1;
+    
+    // Si quantité <= 0, supprimer l'item
+    if (localCart[itemIndex].quantity <= 0) {
+      localCart.splice(itemIndex, 1);
+    }
+    
+    localStorage.setItem('local-cart', JSON.stringify(localCart));
+    
+    // Mettre à jour l'état local
+    setCartItems(localCart);
+    setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+    
+    return { success: true, message: "Quantité diminuée" };
+  }
+  
+  return { success: false, message: "Produit non trouvé dans le panier" };
+};
+
+  const increaseItemQuantity = useCallback(
+    async (productId) => {
+      return await addToCart(productId, 1);
+    },
+    [addToCart]
+  );
+
+  const removeFromCart = useCallback(async (productId) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) {
+  return removeFromLocalCart(productId);
 }
+      const response = await fetch(
+        `http://localhost:5000/api/cart/remove/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Erreur lors de la suppression",
+        };
+      }
+
+      setCartItems(data.data.cart.items);
+      setCartCount(data.data.cart.itemCount);
+
+      return {
+        success: true,
+        message: data.message || "Produit supprimé avec succès",
+        data: data.data,
+      };
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      return {
+        success: false,
+        message: "Erreur de connexion au serveur",
+      };
+    }
+  }, []);
+
+  const removeFromLocalCart = (productId) => {
+  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
+  
+  const filteredCart = localCart.filter(item => item.product !== productId);
+  
+  localStorage.setItem('local-cart', JSON.stringify(filteredCart));
+  
+  // Mettre à jour l'état local
+  setCartItems(filteredCart);
+  setCartCount(filteredCart.reduce((sum, item) => sum + item.quantity, 0));
+  
+  return {
+    success: true,
+    message: "Produit supprimé avec succès"
+  };
+};
+
+  const createOrder = useCallback(
+    async (orderData) => {
+      try {
+        const token = localStorage.getItem("auth-token");
+        if (!token) {
+          return { success: false, message: "Veuillez vous connecter" };
+        }
+
+        const {
+          items,
+          shippingAddress,
+          paymentMethod,
+          notes,
+          deliveryType,
+          phone,
+        } = orderData;
+
+        // Validation du type de livraison
+        const validDeliveryTypes = ["delivery", "pickup", "in_store"];
+        if (!deliveryType || !validDeliveryTypes.includes(deliveryType)) {
+          return { success: false, message: "Type de livraison invalide" };
+        }
+
+        if (!phone || phone.trim().length === 0) {
+          return { success: false, message: "Numéro de téléphone requis" };
+        }
+
+        // Validation selon le type de livraison
+        if (deliveryType === "delivery") {
+          if (!shippingAddress) {
+            return { success: false, message: "Adresse de livraison requise" };
+          }
+          if (!paymentMethod) {
+            return { success: false, message: "Mode de paiement requis" };
+          }
+        } else if (
+          (deliveryType === "pickup" || deliveryType === "in_store") &&
+          paymentMethod
+        ) {
+          return {
+            success: false,
+            message: "Mode de paiement non autorisé pour ce type",
+          };
+        }
+
+        // Préparer le payload
+        const orderPayload = {
+          items: items.map((item) => ({
+            product: item.product || item._id || item.id,
+            quantity: item.quantity || 1,
+          })),
+          deliveryType,
+          phone: phone.trim(),
+          notes: notes?.trim() || "",
+        };
+
+        // Ajouter les champs conditionnels
+        if (deliveryType === "delivery") {
+          orderPayload.shippingAddress = shippingAddress;
+          orderPayload.paymentMethod = paymentMethod;
+        }
+
+        setLoading(true);
+
+        const response = await fetch("http://localhost:5000/api/order/", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(orderPayload),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setCartItems([]);
+          setTotal(0);
+          setCartCount(0);
+          setOrders((prev) => [result.data, ...prev]);
+          return { success: true, message: result.message, data: result.data };
+        } else {
+          return { success: false, message: result.message };
+        }
+      } catch (error) {
+        console.error("Erreur lors de la création:", error);
+        return { success: false, message: "Erreur de connexion" };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setCartItems, setLoading, setOrders]
+  );
+
+
+  const clearCart = async () => {
+    setLoading(true);
+   
+    try {
+      const token = localStorage.getItem("auth-token");
+      
+      if (!token) {
+        return clearLocalCart();
+      }
+
+      const response = await fetch('http://localhost:5000/api/cart/clear', {
+        method: 'DELETE', 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du vidage du panier');
+      }
+
+      const data = await response.json();
+      setCartItems([]);
+      setCartCount(0);
+
+      return data;
+    } catch (err) {
+      console.error(err.message)
+      
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearLocalCart = () => {
+  localStorage.removeItem('local-cart');
+  
+  // Mettre à jour l'état local
+  setCartItems([]);
+  setCartCount(0);
+  setTotal(0); // si vous avez ce state
+  
+  return {
+    success: true,
+    message: "Panier vidé avec succès"
+  };
+};
+
+
+const syncCartAfterLogin = useCallback(async () => {
+  try {
+    const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
+    
+    if (localCart.length === 0) return;
+    
+    const token = localStorage.getItem("auth-token");
+    if (!token) return;
+    
+    // Récupérer le panier serveur actuel
+    const serverCartResponse = await fetch('http://localhost:5000/api/cart', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const serverCart = await serverCartResponse.json();
+    
+    // Ajouter chaque item du panier local au panier serveur
+    for (const item of localCart) {
+      await addToCart(item.product, item.quantity);
+    }
+    
+    // Nettoyer le panier local
+    localStorage.removeItem('local-cart');
+    
+  } catch (error) {
+    console.error('Erreur lors de la synchronisation:', error);
+  }
+}, [addToCart]);
+
+
+const getProductComments = async (productId) => {
+  try {
+    
+    const response = await fetch(`http://localhost:5000/api/admin/product/${productId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch comments');
+    }
+
+    return data.data; // Retourne { comments, pagination, product }
+  } catch (error) {
+    console.error('Error fetching product comments:', error);
+    throw error;
+  }
+};
+
+
+const addComment = async (productId, content) => {
+  try {
+    const token = localStorage.getItem("auth-token");
+    if(!token) return ;
+    const response = await fetch('http://localhost:5000/api/user/comment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, 
+      },
+      body: JSON.stringify({
+        productId,
+        content
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to add comment');
+    }
+
+    return data.data; 
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    throw error;
+  }
+};
+
+  const value = {
+    currency,
+    router,
+    isSeller,
+    setIsSeller,
+    userData,
+    cartItems,
+    total,
+    setCartItems,
+    addToCart,
+    removeFromCart,
+    getAllProducts,
+    cartCount,
+    cartItems,
+    fetchCart,
+    refreshCart,
+    setCartCount,
+    setCartItems,
+    decreaseItemQuantity,
+    updateCartItem,
+    increaseItemQuantity,
+    loading,
+    orders,
+    createOrder,
+    address,
+    isSubmitted,
+    setIsSubmitted,
+    setAddress,
+    setIsSubmitted,
+    clearCart,
+    syncCartAfterLogin,
+    getProductComments,
+    addComment
+  };
+
+  return (
+    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
+  );
+};

@@ -12,7 +12,8 @@ router.use(authenticate);
 router.get('/', cartController.getCart);
 router.post('/add', cartController.addToCart);
 router.patch('/item/:productId',  cartController.updateCartItem);
-router.delete('/item/:productId', cartController.removeFromCart);
+router.delete('/item/:productId',  cartController.decreaseItemQte);
+router.delete('/remove/:productId', cartController.removeFromCart);
 router.delete('/clear', cartController.clearCart);
 
 // Route pour créer une commande directement depuis le panier

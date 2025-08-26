@@ -37,17 +37,17 @@ const ProductCard = ({ product }) => {
                 <p className="text-xs">{4.5}</p>
                 <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, index) => (
-                        <Image
-                            key={index}
-                            className="h-3 w-3"
-                            src={
-                                index < Math.floor(4)
-                                    ? assets.star_icon
-                                    : assets.star_dull_icon
-                            }
-                            alt="star_icon"
-                        />
-                    ))}
+    <svg
+      key={index}
+      className={`w-4 h-4 ${
+        index < Math.floor(4) ? "text-green-600" : "text-gray-300"
+      }`}
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path d="M10 1.5l2.94 5.95 6.56.96-4.75 4.63 1.12 6.54L10 16.77l-5.87 3.09 1.12-6.54-4.75-4.63 6.56-.96L10 1.5z" />
+    </svg>
+  ))}
                 </div>
             </div>
 

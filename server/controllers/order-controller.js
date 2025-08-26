@@ -1,5 +1,5 @@
-import orderServices from '../services/order-services.js';
-import helpers from '../utils/helpers.js';
+import orderServices from "../services/order-services.js";
+import helpers from "../utils/helpers.js";
 
 const { successResponse } = helpers;
 
@@ -10,9 +10,68 @@ export const orderController = {
       const userId = req.user._id;
       const orderData = req.body;
 
+      // Validation des données requises
+      if (!orderData.deliveryType) {
+        throw new AppError("Type de livraison requis", 400);
+      }
+
+      if (!orderData.phone) {
+        throw new AppError("Numéro de téléphone requis", 400);
+      }
+
+      if (
+        !orderData.items ||
+        !Array.isArray(orderData.items) ||
+        orderData.items.length === 0
+      ) {
+        throw new AppError("Au moins un article est requis", 400);
+      }
+
+      // Validation du type de livraison
+      const validDeliveryTypes = ["delivery", "pickup", "in_store"];
+      if (!validDeliveryTypes.includes(orderData.deliveryType)) {
+        throw new AppError(
+          "Type de livraison invalide. Options: delivery, pickup, in_store",
+          400
+        );
+      }
+
+      // Validations spécifiques au type de livraison
+      if (orderData.deliveryType === "delivery") {
+        if (!orderData.shippingAddress) {
+          throw new AppError(
+            "Adresse de livraison requise pour la livraison à domicile",
+            400
+          );
+        }
+        if (!orderData.paymentMethod) {
+          throw new AppError(
+            "Mode de paiement requis pour la livraison à domicile",
+            400
+          );
+        }
+        // Validation des valeurs de mode de paiement
+        const validPaymentMethods = ["cash_on_delivery", "bank_transfer"];
+        if (!validPaymentMethods.includes(orderData.paymentMethod)) {
+          throw new AppError("Mode de paiement invalide", 400);
+        }
+      } else if (
+        orderData.deliveryType === "pickup" ||
+        orderData.deliveryType === "in_store"
+      ) {
+        // Nettoyer les données non nécessaires pour le retrait
+        if (orderData.shippingAddress) {
+          delete orderData.shippingAddress;
+        }
+        if (orderData.paymentMethod) {
+          delete orderData.paymentMethod;
+        }
+      }
+
+      // Créer la commande
       const order = await orderServices.createOrder(userId, orderData);
-      
-      successResponse(res, order, 'Commande créée avec succès', 201);
+
+      successResponse(res, order, "Commande créée avec succès", 201);
     } catch (error) {
       next(error);
     }
@@ -25,8 +84,8 @@ export const orderController = {
       const queryParams = req.query;
 
       const result = await orderServices.getUserOrders(userId, queryParams);
-      
-      successResponse(res, result, 'Commandes récupérées avec succès');
+
+      successResponse(res, result, "Commandes récupérées avec succès");
     } catch (error) {
       next(error);
     }
@@ -39,8 +98,8 @@ export const orderController = {
       const userId = req.user._id;
 
       const order = await orderServices.getOrderById(id, userId);
-      
-      successResponse(res, order, 'Commande récupérée avec succès');
+
+      successResponse(res, order, "Commande récupérée avec succès");
     } catch (error) {
       next(error);
     }
@@ -54,8 +113,8 @@ export const orderController = {
       const userId = req.user._id;
 
       const order = await orderServices.cancelOrder(id, userId, cancelReason);
-      
-      successResponse(res, order, 'Commande annulée avec succès');
+
+      successResponse(res, order, "Commande annulée avec succès");
     } catch (error) {
       next(error);
     }
@@ -67,8 +126,8 @@ export const orderController = {
       const queryParams = req.query;
 
       const result = await orderServices.getAllOrders(queryParams);
-      
-      successResponse(res, result, 'Commandes récupérées avec succès');
+
+      successResponse(res, result, "Commandes récupérées avec succès");
     } catch (error) {
       next(error);
     }
@@ -80,9 +139,17 @@ export const orderController = {
       const { id } = req.params;
       const { status, cancelReason } = req.body;
 
-      const order = await orderServices.updateOrderStatus(id, status, cancelReason);
-      
-      successResponse(res, order, 'Statut de la commande mis à jour avec succès');
+      const order = await orderServices.updateOrderStatus(
+        id,
+        status,
+        cancelReason
+      );
+
+      successResponse(
+        res,
+        order,
+        "Statut de la commande mis à jour avec succès"
+      );
     } catch (error) {
       next(error);
     }
@@ -92,12 +159,16 @@ export const orderController = {
   getOrderStats: async (req, res, next) => {
     try {
       const stats = await orderServices.getOrderStats();
-      
-      successResponse(res, stats, 'Statistiques des commandes récupérées avec succès');
+
+      successResponse(
+        res,
+        stats,
+        "Statistiques des commandes récupérées avec succès"
+      );
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 export default orderController;

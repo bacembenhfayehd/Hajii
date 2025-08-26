@@ -89,9 +89,7 @@ const handleUpdate = async (updatedData) => {
       console.error("Erreur:", error);
       fetchProducts();
       toast.error(error.message);
-    } finally {
-      setIsDeleting(false);
-    }
+    } 
   };
 
   useEffect(() => {
@@ -161,8 +159,8 @@ const handleUpdate = async (updatedData) => {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(product)}
-                          className="p-2 cursor-pointer text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+                          onClick={() => handleDelete(product._id)}
+                          className="p-2 cursor-pointer text-green-600 hover:bg-orange-50 rounded-md transition-colors"
                           title="Supprimer"
                         >
                           <Trash2 size={16} />

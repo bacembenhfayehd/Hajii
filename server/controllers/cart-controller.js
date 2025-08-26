@@ -49,7 +49,7 @@ export const cartController = {
     }
   },
 
-  // Mettre à jour la quantité d'un produit dans le panier
+  
   updateCartItem: async (req, res, next) => {
     try {
       const { productId } = req.params;
@@ -68,11 +68,43 @@ export const cartController = {
 
       successResponse(res, response, 'Quantité mise à jour avec succès');
     } catch (error) {
-      next(error);
+      
+    if (error.statusCode === 400 && error.message.includes('stock disponible')) {
+      return res.status(400).json({
+        status: 'fail',
+        message: error.message,
+        error: {
+          type: 'STOCK_ERROR',
+          details: error.message
+        }
+      });
     }
+    next(error);
+  }
   },
 
-  // Supprimer un produit du panier
+
+  decreaseItemQte: async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user._id;
+
+    const { cart, total } = await cartService.decreaseItemQuantity(userId, productId);
+
+    const response = {
+      cart: {
+        ...cart.toObject(),
+        total,
+        itemCount: cart.items.length
+      }
+    };
+
+    successResponse(res, response, 'Quantité diminuée avec succès');
+  } catch (error) {
+    next(error);
+  }
+},
+ 
   removeFromCart: async (req, res, next) => {
     try {
       const { productId } = req.params;
@@ -94,7 +126,7 @@ export const cartController = {
     }
   },
 
-  // Vider le panier
+ 
   clearCart: async (req, res, next) => {
     try {
       const userId = req.user._id;
@@ -115,16 +147,16 @@ export const cartController = {
     }
   },
 
-  // Créer une commande directement depuis le panier
+  
   createOrderFromCart: async (req, res, next) => {
     try {
       const userId = req.user._id;
       const { shippingAddress, paymentMethod, notes } = req.body;
 
-      // Convertir le panier en items de commande
+      
       const items = await cartService.convertCartToOrderItems(userId);
 
-      // Créer la commande
+      
       const orderData = {
         items,
         shippingAddress,

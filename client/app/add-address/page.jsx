@@ -1,94 +1,127 @@
-'use client'
+"use client";
 import { assets } from "@/assets/assets";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-import { useState } from "react";
+import { useContext } from "react";
+import { AppContext } from "@/context/AppContext";
+import Link from "next/link";
+import toast from "react-hot-toast";
 
 const AddAddress = () => {
-
-    const [address, setAddress] = useState({
-        fullName: '',
-        phoneNumber: '',
-        pincode: '',
-        area: '',
-        city: '',
-        state: '',
-    })
-
-    const onSubmitHandler = async (e) => {
-        e.preventDefault();
-
+  const { address, isSubmitted, setAddress, setIsSubmitted } =
+    useContext(AppContext);
+  const onSubmitHandler = () => {
+    // Vérifier si un des 3 champs est vide
+    if (!address.city || !address.street || !address.postalCode) {
+      toast.error("Merci de remplir tous les champs obligatoires");
+      return; // ne pas soumettre
     }
 
-    return (
-        <>
-            <Navbar />
-            <div className="px-6 md:px-16 lg:px-32 py-16 flex flex-col md:flex-row justify-between">
-                <form onSubmit={onSubmitHandler} className="w-full">
-                    <p className="text-2xl md:text-3xl text-gray-500">
-                        Add Shipping <span className="font-semibold text-orange-600">Address</span>
-                    </p>
-                    <div className="space-y-3 max-w-sm mt-10">
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Full name"
-                            onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                            value={address.fullName}
-                        />
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Phone number"
-                            onChange={(e) => setAddress({ ...address, phoneNumber: e.target.value })}
-                            value={address.phoneNumber}
-                        />
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Pin code"
-                            onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                            value={address.pincode}
-                        />
-                        <textarea
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500 resize-none"
-                            type="text"
-                            rows={4}
-                            placeholder="Address (Area and Street)"
-                            onChange={(e) => setAddress({ ...address, area: e.target.value })}
-                            value={address.area}
-                        ></textarea>
-                        <div className="flex space-x-3">
-                            <input
-                                className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                                type="text"
-                                placeholder="City/District/Town"
-                                onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                                value={address.city}
-                            />
-                            <input
-                                className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                                type="text"
-                                placeholder="State"
-                                onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                                value={address.state}
-                            />
-                        </div>
-                    </div>
-                    <button type="submit" className="max-w-sm w-full mt-6 bg-orange-600 text-white py-3 hover:bg-orange-700 uppercase">
-                        Save address
-                    </button>
-                </form>
-                <Image
-                    className="md:mr-16 mt-16 md:mt-0"
-                    src={assets.my_location_image}
-                    alt="my_location_image"
-                />
+    setIsSubmitted(true);
+    toast.success("Adresse enregistrée avec succès !");
+  };
+
+  const onEditHandler = () => {
+    setIsSubmitted(false);
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div className="px-6 md:px-16 lg:px-32 py-16 flex flex-col md:flex-row justify-between">
+        <form className="w-full">
+          <p className="text-2xl md:text-3xl text-gray-500">
+            Ajouter l'adresse de{" "}
+            <span className="font-semibold text-green-600">livraison</span>
+          </p>
+          <div className="space-y-3 max-w-sm mt-10">
+            <input
+              className="px-2 py-2.5 focus:border-green-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
+              type="text"
+              placeholder="Gouvernorat"
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+              value={address.city}
+              disabled={isSubmitted}
+            />
+            <input
+              className="px-2 py-2.5 focus:border-green-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
+              type="text"
+              placeholder="Rue"
+              onChange={(e) =>
+                setAddress({ ...address, street: e.target.value })
+              }
+              value={address.street}
+              disabled={isSubmitted}
+            />
+            <input
+              className="px-2 py-2.5 focus:border-green-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
+              type="text"
+              placeholder="Code postal"
+              onChange={(e) =>
+                setAddress({ ...address, postalCode: e.target.value })
+              }
+              value={address.postalCode}
+              disabled={isSubmitted}
+            />
+            <input
+              className="px-2 py-2.5 focus:border-green-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
+              type="text"
+              placeholder="Téléphone"
+              onChange={(e) =>
+                setAddress({ ...address, phone: e.target.value })
+              }
+              value={address.phone}
+              disabled={isSubmitted}
+            />
+            <textarea
+              className="px-2 py-2.5 focus:border-green-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500 resize-none"
+              type="text"
+              rows={4}
+              placeholder="Notes (Avis et commentaires)"
+              onChange={(e) =>
+                setAddress({ ...address, notes: e.target.value })
+              }
+              value={address.notes}
+              disabled={isSubmitted}
+            ></textarea>
+          </div>
+          {!isSubmitted ? (
+            <button
+              onClick={() => onSubmitHandler()}
+              className="max-w-sm w-full mt-6 bg-green-600 text-white py-3 hover:bg-green-700 uppercase"
+            >
+              Confirmer
+            </button>
+          ) : (
+            <div className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => onEditHandler()}
+                className="max-w-sm w-full mt-6 bg-gray-400 text-white py-3 hover:bg-gray-400 uppercase"
+              >
+                Changer les valeurs
+              </button>
+              <Link href="/cart">
+                <button
+                  type="button"
+                  className="max-w-sm w-full mt-6 bg-green-600 text-white py-3 hover:bg-green-700 uppercase"
+                >
+                  Continuer le processus
+                </button>
+              </Link>
             </div>
-            <Footer />
-        </>
-    );
+          )}
+        </form>
+        <Image
+          className="md:mr-16 mt-16 md:mt-0"
+          src={assets.my_location_image}
+          alt="my_location_image"
+        />
+      </div>
+      <Footer />
+    </>
+  );
 };
 
 export default AddAddress;

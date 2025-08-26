@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import cartRoutes from './routes/cartRoutes.js'
+import userRoutes from './routes/userRoutes.js'
 import errorHandler from './middleware/errorHandler.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,19 +30,26 @@ const __dirname = path.dirname(__filename);
 app.use(express.json({ limit: '10mb' }));
 app.use(helmet());
 app.use(cookieParser())
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:3001"],
+  credentials: true,
+}));
 
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100 
-});
+// Appliquer le rate limiter seulement en production
+if (process.env.NODE_ENV === 'production') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 100 
+  });
+  
+  app.use('/api', limiter);
+}
 
 
-app.use('/api', limiter);
 
 
 
@@ -55,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/order', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/user',userRoutes)
 //app.use('/api/product', productRoutes);
 
 // Error handling middleware

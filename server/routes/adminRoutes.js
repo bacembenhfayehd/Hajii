@@ -3,6 +3,7 @@ import { upload } from '../utils/cloudinary.js';
 import { validateBulkStockUpdate, validateMongoId, validateProductCreate, validateProductQuery, validateProductUpdate } from '../middleware/validaton.js';
 import { addProduct, bulkUpdateStock, deleteProduct, deleteProductImage, getAllProducts, getProduct, getProductStats, updateProduct } from '../controllers/product-controller.js';
 import orderController from '../controllers/order-controller.js';
+import adminController from '../controllers/admin-controller.js';
 
 
 const router = express.Router();
@@ -50,5 +51,14 @@ router.patch('/products/bulk-stock',
 
 
 router.get('/orders', orderController.getAllOrders);
+
+
+router.get('/product/:productId', adminController.getProductComments);
+router.get('/:commentId', adminController.getCommentById);
+
+
+router.get('/', adminController.getAllComments);
+router.get('/stats', adminController.getCommentStats);
+router.delete('/:commentId', adminController.deleteComment);
 
 export default router;

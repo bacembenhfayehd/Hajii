@@ -51,11 +51,18 @@ const login = async (req, res, next) => {
 // Logout user
 const logout = async (req, res, next) => {
   try {
-    await authService.logout(req.user.id);
+    const { userId } = req.body;
     
-    // Clear refresh token cookie
-    res.clearCookie('refreshToken');
+    // Supprimer le refreshToken de la base de données
+    await authService.logout(userId);
     
+    // Supprimer le cookie refreshToken
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
     successResponse(res, null, 'Logged out successfully');
   } catch (error) {
     next(error);

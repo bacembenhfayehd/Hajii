@@ -88,6 +88,7 @@ class CartService {
 
   // Mettre à jour la quantité d'un produit dans le panier
   async updateCartItemQuantity(userId, productId, quantity) {
+    try {
     const cart = await Cart.findOne({ user: userId });
     
     if (!cart) {
@@ -126,7 +127,48 @@ class CartService {
     const total = await this.calculateCartTotal(cart);
 
     return { cart, total };
+  }catch(error){
+    throw error
+
   }
+  }
+
+
+  //diminuer la qte de produit du panier 
+  async decreaseItemQuantity(userId, productId) {
+  const cart = await Cart.findOne({ user: userId });
+  
+  if (!cart) {
+    throw new AppError('Panier introuvable', 404);
+  }
+
+  // Trouver l'item dans le panier
+  const existingItemIndex = cart.items.findIndex(item => 
+    item.product.toString() === productId.toString()
+  );
+
+  if (existingItemIndex === -1) {
+    throw new AppError('Produit introuvable dans le panier', 404);
+  }
+
+  const existingItem = cart.items[existingItemIndex];
+
+  // Si la quantité est 1, supprimer complètement l'item
+  if (existingItem.quantity <= 1) {
+    cart.items.splice(existingItemIndex, 1);
+  } else {
+    // Sinon, diminuer la quantité de 1
+    cart.items[existingItemIndex].quantity -= 1;
+  }
+
+  cart.updatedAt = new Date();
+  await cart.save();
+
+  await cart.populate('items.product', 'name price category brand stock images');
+  const total = await this.calculateCartTotal(cart);
+
+  return { cart, total };
+}
 
   // Supprimer un produit du panier
   async removeFromCart(userId, productId) {
