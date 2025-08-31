@@ -1,14 +1,14 @@
+import Chat from "@/components/chat/Chat";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
-export default function RootLayout({ children }) {
+export default function AuthLayout({ children }) {
   return (
-      <html lang="en">
-        <body>
-          <Navbar/>
-            {children}
-         <Footer/>
-        </body>
-      </html>
+    <>
+      <Navbar/>
+      {children}
+      <Chat/>
+      <Footer/>
+    </>
   );
 }

@@ -8,7 +8,7 @@ export const sendOrderConfirmationEmail = async (order, user) => {
 
     const mailOptions = {
       from: {
-        name: 'Votre Boutique',
+        name: 'Haji cosmétiques',
         address: process.env.FROM_EMAIL
       },
       to: user.email,

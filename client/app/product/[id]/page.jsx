@@ -10,6 +10,7 @@ import Loading from "@/components/Loading";
 import { useAppContext } from "@/context/AppContext";
 import React from "react";
 import toast from "react-hot-toast";
+import { User } from "lucide-react";
 
 const Product = () => {
   const { id } = useParams();
@@ -256,8 +257,11 @@ const Product = () => {
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                   >
                     <div className="flex gap-4">
-                      {/* Avatar amélioré */}
+                       
                       <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-gray-600" />
+                  </div>
                         <div className="w-12 h-12 bg-gradient-to-br from-green to-green rounded-full flex items-center justify-center text-white font-bold text-lg">
                           {comment.user?.name || "U"}
                         </div>

@@ -181,8 +181,7 @@ class ProductService {
   async getAllProducts(filters = {}) {
     try {
       const {
-        page = 1,
-        limit = 10,
+        page = 2,
         category,
         search,
         sortBy = 'createdAt',
@@ -212,8 +211,7 @@ class ProductService {
 
       const products = await Product.find(query)
         .sort(sortOptions)
-        .limit(parseInt(limit))
-        .skip((parseInt(page) - 1) * parseInt(limit))
+
         .exec();
 
       const total = await Product.countDocuments(query);
@@ -222,9 +220,9 @@ class ProductService {
         products,
         pagination: {
           current: parseInt(page),
-          pages: Math.ceil(total / limit),
+          pages: Math.ceil(total),
           total,
-          hasNext: page < Math.ceil(total / limit),
+          hasNext: page < Math.ceil(total),
           hasPrev: page > 1
         }
       };

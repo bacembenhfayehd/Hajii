@@ -5,10 +5,10 @@ import Image from "next/image";
 
 import Loading from "@/components/Loading";
 import { AdminContext } from "@/context/AdminContext";
-import { Package } from "lucide-react";
+import { ChevronDown, Package } from "lucide-react";
 
 const Orders = () => {
-  const { getAllOrders } = useContext(AdminContext);
+  const { getAllOrders,updateOrderStatus } = useContext(AdminContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -43,6 +43,89 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const StatusDropdown = ({ order, onStatusChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const statusOptions = [
+    { value: 'pending', label: 'En attente', color: 'text-yellow-600' },
+    { value: 'confirmed', label: 'Confirmé', color: 'text-green-600' },
+    { value: 'cancelled', label: 'Annulé', color: 'text-red-600' }
+  ];
+
+  const currentStatus = statusOptions.find(option => option.value === order.status);
+
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === order.status) {
+      setIsOpen(false);
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateOrderStatus(order._id, newStatus);
+      onStatusChange(order._id, newStatus);
+      setIsOpen(false);
+    } catch (error) {
+      // Handle error (show toast notification, etc.)
+      alert('Erreur lors de la mise à jour du statut');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={isUpdating}
+        className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium hover:bg-gray-50 transition-colors ${
+          isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        } ${currentStatus?.color || 'text-gray-600'}`}
+      >
+        <span>Statut : {currentStatus?.label || order.status}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)}
+          />
+          {/* Dropdown */}
+          <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 min-w-32">
+            {statusOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleStatusChange(option.value)}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  option.value === order.status ? 'bg-gray-100 font-medium' : ''
+                } ${option.color}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+
+   const handleStatusChange = (orderId, newStatus) => {
+    // Update the orders state with the new status
+    setOrders(prevOrders => 
+      prevOrders.map(order => 
+        order._id === orderId 
+          ? { ...order, status: newStatus }
+          : order
+      )
+    );
   };
 
   useEffect(() => {
@@ -98,7 +181,7 @@ const Orders = () => {
                   DT {order.totalAmount.toFixed(2)}
                 </p>
                 <div>
-                  <p className="flex flex-col">
+                  <div className="flex flex-col">
                     <span>
                       Method :{" "}
                       {order.paymentMethod === "cash_on_delivery"
@@ -108,15 +191,12 @@ const Orders = () => {
                     <span>
                       Date : {new Date(order.orderDate).toLocaleDateString()}
                     </span>
-                    <span>
-                      Statut :{" "}
-                      {order.status === "pending"
-                        ? "En attente"
-                        : order.status === "cancelled"
-                        ? "Annulé"
-                        : "Complété"}
-                    </span>
-                  </p>
+                    
+                    <StatusDropdown 
+                      order={order} 
+                      onStatusChange={handleStatusChange}
+                    />
+                  </div>
                 </div>
               </div>
             ))}

@@ -1,5 +1,5 @@
 "use client";
-import { assets } from "@/assets/assets";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { AppContext } from "@/context/AppContext";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import hello from '@/assets/1746348384818-Photoroom.png'
 
 const AddAddress = () => {
   const { address, isSubmitted, setAddress, setIsSubmitted } =
@@ -115,7 +116,7 @@ const AddAddress = () => {
         </form>
         <Image
           className="md:mr-16 mt-16 md:mt-0"
-          src={assets.my_location_image}
+          src={hello}
           alt="my_location_image"
         />
       </div>

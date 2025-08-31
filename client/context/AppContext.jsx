@@ -33,6 +33,8 @@ export const AppContextProvider = (props) => {
     phone: "",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [myorders, setMyorders] = useState([]);
+  const [stats, setStats] = useState({});
 
   // Récupérer le panier depuis l'API
   const fetchCart = useCallback(async () => {
@@ -113,8 +115,8 @@ export const AppContextProvider = (props) => {
     try {
       const token = localStorage.getItem("auth-token");
       if (!token) {
-      return addToLocalCart(productId, quantity);
-    }
+        return addToLocalCart(productId, quantity);
+      }
 
       setLoading(true);
 
@@ -151,30 +153,28 @@ export const AppContextProvider = (props) => {
     }
   }, []);
 
-
   const addToLocalCart = (productId, quantity) => {
-  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
-  
-  const existingItem = localCart.find(item => item.product === productId);
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    localCart.push({ product: productId, quantity });
-  }
-  
-  localStorage.setItem('local-cart', JSON.stringify(localCart));
-  
-  // Mettre à jour l'état local
-  setCartItems(localCart);
-  setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
-  
-  return { success: true, message: "Produit ajouté au panier" };
-};
+    const localCart = JSON.parse(localStorage.getItem("local-cart") || "[]");
+
+    const existingItem = localCart.find((item) => item.product === productId);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      localCart.push({ product: productId, quantity });
+    }
+
+    localStorage.setItem("local-cart", JSON.stringify(localCart));
+
+    // Mettre à jour l'état local
+    setCartItems(localCart);
+    setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+
+    return { success: true, message: "Produit ajouté au panier" };
+  };
 
   const updateCartItem = useCallback(async (productId, quantity) => {
     try {
       const token = localStorage.getItem("auth-token");
-     
 
       if (quantity < 1) {
         return {
@@ -183,9 +183,9 @@ export const AppContextProvider = (props) => {
         };
       }
 
-       if (!token) {
-      return updateLocalCartItem(productId, quantity);
-    }
+      if (!token) {
+        return updateLocalCartItem(productId, quantity);
+      }
 
       setLoading(true);
 
@@ -223,32 +223,31 @@ export const AppContextProvider = (props) => {
     }
   }, []);
 
-
   const updateLocalCartItem = (productId, quantity) => {
-  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
-  
-  const itemIndex = localCart.findIndex(item => item.product === productId);
-  if (itemIndex !== -1) {
-    localCart[itemIndex].quantity = quantity;
-    localStorage.setItem('local-cart', JSON.stringify(localCart));
-    
-    // Mettre à jour l'état local
-    setCartItems(localCart);
-    setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
-    
-    return { success: true, message: "Quantité mise à jour" };
-  }
-  
-  return { success: false, message: "Produit non trouvé dans le panier" };
-};
+    const localCart = JSON.parse(localStorage.getItem("local-cart") || "[]");
+
+    const itemIndex = localCart.findIndex((item) => item.product === productId);
+    if (itemIndex !== -1) {
+      localCart[itemIndex].quantity = quantity;
+      localStorage.setItem("local-cart", JSON.stringify(localCart));
+
+      // Mettre à jour l'état local
+      setCartItems(localCart);
+      setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+
+      return { success: true, message: "Quantité mise à jour" };
+    }
+
+    return { success: false, message: "Produit non trouvé dans le panier" };
+  };
 
   // Fonction pour diminuer la quantité d'un produit dans le panier
   const decreaseItemQuantity = useCallback(async (productId) => {
     try {
       const token = localStorage.getItem("auth-token");
-        if (!token) {
-      return decreaseLocalCartItem(productId);
-    }
+      if (!token) {
+        return decreaseLocalCartItem(productId);
+      }
 
       setLoading(true);
 
@@ -285,30 +284,29 @@ export const AppContextProvider = (props) => {
     }
   }, []);
 
-
   const decreaseLocalCartItem = (productId) => {
-  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
-  
-  const itemIndex = localCart.findIndex(item => item.product === productId);
-  if (itemIndex !== -1) {
-    localCart[itemIndex].quantity -= 1;
-    
-    // Si quantité <= 0, supprimer l'item
-    if (localCart[itemIndex].quantity <= 0) {
-      localCart.splice(itemIndex, 1);
+    const localCart = JSON.parse(localStorage.getItem("local-cart") || "[]");
+
+    const itemIndex = localCart.findIndex((item) => item.product === productId);
+    if (itemIndex !== -1) {
+      localCart[itemIndex].quantity -= 1;
+
+      // Si quantité <= 0, supprimer l'item
+      if (localCart[itemIndex].quantity <= 0) {
+        localCart.splice(itemIndex, 1);
+      }
+
+      localStorage.setItem("local-cart", JSON.stringify(localCart));
+
+      // Mettre à jour l'état local
+      setCartItems(localCart);
+      setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+
+      return { success: true, message: "Quantité diminuée" };
     }
-    
-    localStorage.setItem('local-cart', JSON.stringify(localCart));
-    
-    // Mettre à jour l'état local
-    setCartItems(localCart);
-    setCartCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
-    
-    return { success: true, message: "Quantité diminuée" };
-  }
-  
-  return { success: false, message: "Produit non trouvé dans le panier" };
-};
+
+    return { success: false, message: "Produit non trouvé dans le panier" };
+  };
 
   const increaseItemQuantity = useCallback(
     async (productId) => {
@@ -321,8 +319,8 @@ export const AppContextProvider = (props) => {
     try {
       const token = localStorage.getItem("auth-token");
       if (!token) {
-  return removeFromLocalCart(productId);
-}
+        return removeFromLocalCart(productId);
+      }
       const response = await fetch(
         `http://localhost:5000/api/cart/remove/${productId}`,
         {
@@ -362,21 +360,21 @@ export const AppContextProvider = (props) => {
   }, []);
 
   const removeFromLocalCart = (productId) => {
-  const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
-  
-  const filteredCart = localCart.filter(item => item.product !== productId);
-  
-  localStorage.setItem('local-cart', JSON.stringify(filteredCart));
-  
-  // Mettre à jour l'état local
-  setCartItems(filteredCart);
-  setCartCount(filteredCart.reduce((sum, item) => sum + item.quantity, 0));
-  
-  return {
-    success: true,
-    message: "Produit supprimé avec succès"
+    const localCart = JSON.parse(localStorage.getItem("local-cart") || "[]");
+
+    const filteredCart = localCart.filter((item) => item.product !== productId);
+
+    localStorage.setItem("local-cart", JSON.stringify(filteredCart));
+
+    // Mettre à jour l'état local
+    setCartItems(filteredCart);
+    setCartCount(filteredCart.reduce((sum, item) => sum + item.quantity, 0));
+
+    return {
+      success: true,
+      message: "Produit supprimé avec succès",
+    };
   };
-};
 
   const createOrder = useCallback(
     async (orderData) => {
@@ -473,27 +471,26 @@ export const AppContextProvider = (props) => {
     [setCartItems, setLoading, setOrders]
   );
 
-
   const clearCart = async () => {
     setLoading(true);
-   
+
     try {
       const token = localStorage.getItem("auth-token");
-      
+
       if (!token) {
         return clearLocalCart();
       }
 
-      const response = await fetch('http://localhost:5000/api/cart/clear', {
-        method: 'DELETE', 
+      const response = await fetch("http://localhost:5000/api/cart/clear", {
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du vidage du panier');
+        throw new Error("Erreur lors du vidage du panier");
       }
 
       const data = await response.json();
@@ -502,8 +499,8 @@ export const AppContextProvider = (props) => {
 
       return data;
     } catch (err) {
-      console.error(err.message)
-      
+      console.error(err.message);
+
       throw err;
     } finally {
       setLoading(false);
@@ -511,107 +508,183 @@ export const AppContextProvider = (props) => {
   };
 
   const clearLocalCart = () => {
-  localStorage.removeItem('local-cart');
-  
-  // Mettre à jour l'état local
-  setCartItems([]);
-  setCartCount(0);
-  setTotal(0); // si vous avez ce state
-  
-  return {
-    success: true,
-    message: "Panier vidé avec succès"
+    localStorage.removeItem("local-cart");
+
+    // Mettre à jour l'état local
+    setCartItems([]);
+    setCartCount(0);
+    setTotal(0); // si vous avez ce state
+
+    return {
+      success: true,
+      message: "Panier vidé avec succès",
+    };
   };
-};
 
+  const syncCartAfterLogin = useCallback(async () => {
+    try {
+      const localCart = JSON.parse(localStorage.getItem("local-cart") || "[]");
 
-const syncCartAfterLogin = useCallback(async () => {
-  try {
-    const localCart = JSON.parse(localStorage.getItem('local-cart') || '[]');
-    
-    if (localCart.length === 0) return;
-    
-    const token = localStorage.getItem("auth-token");
-    if (!token) return;
-    
-    // Récupérer le panier serveur actuel
-    const serverCartResponse = await fetch('http://localhost:5000/api/cart', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const serverCart = await serverCartResponse.json();
-    
-    // Ajouter chaque item du panier local au panier serveur
-    for (const item of localCart) {
-      await addToCart(item.product, item.quantity);
+      if (localCart.length === 0) return;
+
+      const token = localStorage.getItem("auth-token");
+      if (!token) return;
+
+      // Récupérer le panier serveur actuel
+      const serverCartResponse = await fetch("http://localhost:5000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const serverCart = await serverCartResponse.json();
+
+      // Ajouter chaque item du panier local au panier serveur
+      for (const item of localCart) {
+        await addToCart(item.product, item.quantity);
+      }
+
+      // Nettoyer le panier local
+      localStorage.removeItem("local-cart");
+    } catch (error) {
+      console.error("Erreur lors de la synchronisation:", error);
     }
-    
-    // Nettoyer le panier local
-    localStorage.removeItem('local-cart');
-    
-  } catch (error) {
-    console.error('Erreur lors de la synchronisation:', error);
-  }
-}, [addToCart]);
+  }, [addToCart]);
 
+  const getProductComments = async (productId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/admin/product/${productId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-const getProductComments = async (productId) => {
-  try {
-    
-    const response = await fetch(`http://localhost:5000/api/admin/product/${productId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch comments');
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch comments");
+      }
+
+      return data.data; // Retourne { comments, pagination, product }
+    } catch (error) {
+      console.error("Error fetching product comments:", error);
+      throw error;
     }
+  };
 
-    return data.data; // Retourne { comments, pagination, product }
-  } catch (error) {
-    console.error('Error fetching product comments:', error);
-    throw error;
-  }
-};
+  const addComment = async (productId, content) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) return;
+      const response = await fetch("http://localhost:5000/api/user/comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId,
+          content,
+        }),
+      });
 
+      const data = await response.json();
 
-const addComment = async (productId, content) => {
-  try {
-    const token = localStorage.getItem("auth-token");
-    if(!token) return ;
-    const response = await fetch('http://localhost:5000/api/user/comment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, 
-      },
-      body: JSON.stringify({
-        productId,
-        content
-      })
-    });
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to add comment");
+      }
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to add comment');
+      return data.data;
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      throw error;
     }
+  };
 
-    return data.data; 
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    throw error;
-  }
-};
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      const response = await fetch("http://localhost:5000/api/user/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setUserData(data.message.user); // Note: selon votre réponse API, c'est data.message.user
+        setMyorders(data.message.recentOrders);
+        setStats(data.message.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  const updateProfile = async (updateData) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      const response = await fetch("http://localhost:5000/api/user/", {
+        method: "PUT", // ou 'PATCH' selon votre route
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setUserData(data.message.user);
+        setStats(data.message.stats);
+        setMyorders(data.message.recentOrders);
+        return { success: true };
+      } else {
+        return { success: false, error: data.message };
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return { success: false, error: "Erreur de connexion" };
+    }
+  };
+
+  const updatePassword = async (passwordData) => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      const response = await fetch("http://localhost:5000/api/user/password", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(passwordData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        return { success: true, message: data.data };
+      } else {
+        return { success: false, error: data.message || data.data };
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return { success: false, error: "Erreur de connexion" };
+    }
+  };
 
   const value = {
     currency,
     router,
     isSeller,
+    myorders,
+    stats,
     setIsSeller,
+    fetchProfile,
     userData,
     cartItems,
     total,
@@ -639,7 +712,9 @@ const addComment = async (productId, content) => {
     clearCart,
     syncCartAfterLogin,
     getProductComments,
-    addComment
+    addComment,
+    updateProfile,
+    updatePassword,
   };
 
   return (

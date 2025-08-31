@@ -9,6 +9,7 @@ import adminController from '../controllers/admin-controller.js';
 const router = express.Router();
 
 // Product CRUD routes
+router.get('/users', adminController.getUsers);
 router.post('/products', 
   upload.array('images', 5), // Max 5 images
   validateProductCreate,
@@ -59,6 +60,33 @@ router.get('/:commentId', adminController.getCommentById);
 
 router.get('/', adminController.getAllComments);
 router.get('/stats', adminController.getCommentStats);
-router.delete('/:commentId', adminController.deleteComment);
+router.delete('/comments/:commentId', adminController.deleteComment);
+
+
+// GET /api/admin/users - Get paginated users list with analytics
+// Query parameters:
+// - page: page number (default: 1)
+// - limit: items per page (default: 10)
+// - search: search term for name, email, or phone
+// - sortBy: field to sort by (default: 'createdAt')
+// - sortOrder: 'asc' or 'desc' (default: 'desc')
+
+
+// GET /api/admin/users/analytics - Get overall user analytics and statistics
+router.get('/users/analytics', adminController.getUsersAnalytics);
+
+// GET /api/admin/users/export - Export users data to CSV
+router.get('/export/users', adminController.exportUsers);
+
+// GET /api/admin/users/:id - Get specific user details with full order history
+router.get('/:id', adminController.getUserDetails);
+
+// PUT /api/admin/users/:id/status - Toggle user active/inactive status
+router.put('/:id/status', adminController.toggleUserStatus);
+
+// DELETE /api/admin/users/:id - Soft delete user (set isActive to false)
+router.delete('/usersdelete/:id', adminController.deleteUser);
+
+router.patch('/orders/:orderId/status', adminController.updateOrderStatusController);
 
 export default router;

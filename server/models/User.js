@@ -22,6 +22,33 @@ const userSchema = new mongoose.Schema({
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false // Don't include password in queries by default
   },
+  phone: {
+  type: String,
+  trim: true,
+  match: [/^\+?[1-9]\d{1,14}$/, 'Format de téléphone invalide']
+},
+address: {
+  line: {
+    type: String,
+    trim: true,
+    maxlength: [200, 'Address line cannot exceed 200 characters']
+  },
+  city: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'City name cannot exceed 50 characters']
+  },
+  municipality: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Municipality name cannot exceed 50 characters']
+  },
+  postalCode: {
+    type: String,
+    trim: true,
+    maxlength: [10, 'Postal code cannot exceed 10 characters']
+  }
+},
   isActive: {
     type: Boolean,
     default: true

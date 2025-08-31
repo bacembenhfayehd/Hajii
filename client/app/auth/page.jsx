@@ -4,6 +4,7 @@ import Loading from "@/components/Loading";
 import { AppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
+import toast from "react-hot-toast";
 
 const LoginSignup = () => {
   const {syncCartAfterLogin} = useContext(AppContext)
@@ -40,7 +41,7 @@ const LoginSignup = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || `${loggingOrregister} failed`);
+        toast.error(result.message || `${loggingOrregister} failed`);
       }
 
       const { user, accessToken } = result.data;

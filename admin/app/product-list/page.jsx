@@ -160,7 +160,7 @@ const handleUpdate = async (updatedData) => {
                         </button>
                         <button
                           onClick={() => handleDelete(product._id)}
-                          className="p-2 cursor-pointer text-green-600 hover:bg-orange-50 rounded-md transition-colors"
+                          className="p-2 cursor-pointer text-green-600 hover:bg-green-50 rounded-md transition-colors"
                           title="Supprimer"
                         >
                           <Trash2 size={16} />

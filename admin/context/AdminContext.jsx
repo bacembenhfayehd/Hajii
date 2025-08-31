@@ -1,7 +1,8 @@
 "use client";
 
 
-import { createContext, useContext } from "react";
+import axios from "axios";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export const AdminContext = createContext();
 
@@ -10,6 +11,16 @@ export const useAdminContext = () => {
 };
 
 export const AdminContextProvider = (props) => {
+
+    const [users, setUsers] = useState([]);
+    const [comments, setComments] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [statistics, setStatistics] = useState({});
+   const [cp, setCp] = useState({});
+  const [cs, setCs] = useState({});
+  const [loading, setLoading] = useState(true);
+
+
   const createProduct = async (productData, imageFiles) => {
     const formData = new FormData();
 
@@ -126,11 +137,136 @@ export const AdminContextProvider = (props) => {
     }
   };
 
+   const fetchUsers = async ({ page = 1, limit = 10, search = "", sortBy = "createdAt", sortOrder = "desc" } = {}) => {
+    try {
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/admin/users", {
+        params: { page, limit, search, sortBy, sortOrder }
+      });
+
+      if (res.data.success) {
+        setUsers(res.data.data.users);
+        setPagination(res.data.data.pagination);
+        setStatistics(res.data.data.statistics);
+      }
+    } catch (error) {
+      console.error("Erreur API:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async ({ page = 1, limit = 10, search = "", sortBy = "createdAt", sortOrder = "desc" } = {}) => {
+    try {
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/admin/", {
+        params: { page, limit, search, sortBy, sortOrder }
+      });
+
+      if (res.data.success) {
+        setComments(res.data.data.comments);
+        setCp(res.data.data.pagination);
+        setCs(res.data.data.stats);
+        
+      }
+    } catch (error) {
+      console.error("Erreur API:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const deleteComment = async (commentId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/admin/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erreur lors de la suppression du commentaire');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erreur deleteComment:', error);
+    throw error;
+  }
+};
+
+ const deleteUser = async (userId) => {
+  try {
+    console.log('=== DEBUG COMPLET ===');
+    console.log('ID utilisateur:', userId);
+    console.log('Type ID:', typeof userId);
+    
+    const response = await fetch(`http://localhost:5000/api/admin/usersdelete/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Lire la réponse brute
+    const responseText = await response.text();
+    console.log('Response brute:', responseText);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${responseText}`);
+    }
+
+    const data = JSON.parse(responseText);
+    return data;
+  } catch (error) {
+    console.error('Erreur deleteUser:', error);
+    throw error;
+  }
+};
+
+const updateOrderStatus = async (orderId, newStatus) => {
+  try {
+    // Replace with your actual API endpoint
+    const response = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    await getAllOrders();
+    
+    if (!response.ok) {
+      throw new Error('Failed to update order status');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
+   useEffect(() => {
+    fetchUsers();
+    fetchComments()
+    
+  }, []);
+
   const value = {
     createProduct,
     getAllProducts,
     getAllOrders,
-    updateProduct
+    updateProduct,fetchUsers,pagination,statistics,users,loading,fetchComments,comments,cp,cs,deleteComment,deleteUser,updateOrderStatus
   };
 
   return (

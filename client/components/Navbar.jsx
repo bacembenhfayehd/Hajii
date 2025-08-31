@@ -115,14 +115,14 @@ const Navbar = () => {
 
       <ul className="hidden md:flex items-center gap-4 ">
         <ModernSearchOverlay/>
+        {isLoggedIn &&  <Link href='/profile'><Image src={assets.user_icon} alt="user icon" /></Link>}
         <Link
           href={isLoggedIn ? "#" : "/auth"}
           onClick={handleAuthAction}
           className="flex items-center gap-2 hover:text-gray-900 transition"
         >
-          <Image src={assets.user_icon} alt="user icon" />
           {isLoggedIn
-            ? `Déconnexion${user?.name ? ` (${user.name})` : ""}`
+            ? `Déconnexion ${user?.name ? ` (${user.name})` : ""}`
             : "Connexion"}
         </Link>
         <Link href="/cart">

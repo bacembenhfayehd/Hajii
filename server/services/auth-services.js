@@ -31,7 +31,7 @@ class AuthService {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw new AppError('User with this email already exists', 400);
+      throw new AppError('cet email déja utilisé par un autre utilisateur', 400);
     }
 
     // Create new user
@@ -64,13 +64,13 @@ class AuthService {
     // Find user and include password field
     const user = await User.findOne({ email, isActive: true }).select('+password');
     if (!user) {
-      throw new AppError('Invalid email or password', 401);
+      throw new AppError('email ou mot de passe non valide', 401);
     }
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      throw new AppError('Invalid email or password', 401);
+      throw new AppError('email ou mot de passe non valide', 401);
     }
 
     // Generate tokens
