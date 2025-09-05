@@ -126,7 +126,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      match: [/^\+?[1-9]\d{1,14}$/, "Format de téléphone invalide"],
+      match: [/^\d{8}$/, "Le numéro doit contenir exactement 8 chiffres"],
     },
     orderDate: {
       type: Date,

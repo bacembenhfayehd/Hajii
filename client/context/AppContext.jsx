@@ -437,7 +437,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
         );
         existingTempOrders.push(tempOrder);
         localStorage.setItem("temp-orders", JSON.stringify(existingTempOrders));
-        
+        router.push("/auth");
         return { 
           success: false, 
           message: "Commande sauvegardée. Connectez-vous pour finaliser",
@@ -465,6 +465,10 @@ const [isSubmitted, setIsSubmitted] = useState(false);
 
         if (!phone || phone.trim().length === 0) {
           return { success: false, message: "Numéro de téléphone requis" };
+        }
+
+        if (!/^\d{8}$/.test(phone)) {
+         return { success: false, message: "Numéro de téléphone invalide " };
         }
 
         // Validation selon le type de livraison

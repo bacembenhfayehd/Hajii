@@ -12,6 +12,7 @@ const OrderSummary = ({ cartCount, cartItems }) => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const { address, deliveryType, paymentMethod, selectedAddress, isSubmitted } =
     formData;
+    const token = localStorage.getItem('auth-token');
 
   const setAddress = (newAddress) => updateFormData({ address: newAddress });
 
@@ -426,7 +427,7 @@ const OrderSummary = ({ cartCount, cartItems }) => {
             ? "bg-green-600 hover:bg-green-700 cursor-pointer"
             : "bg-gray-400 cursor-not-allowed"
         }`}
-      >
+      > 
         {isCreatingOrder ? "Création en cours..." : "Passer la commande"}
       </button>
     </div>

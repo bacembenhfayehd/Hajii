@@ -15,8 +15,8 @@ export const orderController = {
         throw new AppError("Type de livraison requis", 400);
       }
 
-      if (!orderData.phone) {
-        throw new AppError("Numéro de téléphone requis", 400);
+      if (!/^\d{8}$/.test(orderData.phone)) {
+      throw new AppError("Numéro de téléphone invalide : 8 chiffres requis", 400);
       }
 
       if (
