@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 
 export const AppContext = createContext();
 
@@ -26,13 +27,14 @@ export const AppContextProvider = (props) => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [address, setAddress] = useState({
-    city: "",
-    street: "",
-    postalCode: "",
-    notes: "",
-    phone: "",
-  });
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  city: "",
+  street: "",
+  postalCode: "",
+  notes: "",
+  phone: "",
+});
+const [isSubmitted, setIsSubmitted] = useState(false);
+  
   const [myorders, setMyorders] = useState([]);
   const [stats, setStats] = useState({});
 
@@ -376,13 +378,75 @@ export const AppContextProvider = (props) => {
     };
   };
 
+  const processPendingOrders = useCallback(async () => {
+    const tempOrders = JSON.parse(localStorage.getItem("temp-orders") || "[]");
+
+    if (tempOrders.length === 0) return;
+
+    try {
+      // Process all pending orders
+      const results = await Promise.allSettled(
+        tempOrders.map(async (tempOrder) => {
+          const response = await fetch("http://localhost:5000/api/order/", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(tempOrder.orderData),
+          });
+          return response.json();
+        })
+      );
+
+      const successful = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success
+      );
+
+      if (successful.length > 0) {
+        toast.success(
+          `${successful.length} commande(s) sauvegardée(s) finalisée(s) !`
+        );
+        // Update orders state
+        const newOrders = successful.map((r) => r.value.data);
+        setOrders((prev) => [...newOrders, ...prev]);
+      }
+    } catch (error) {
+      console.error("Erreur lors du traitement des commandes:", error);
+    } finally {
+      localStorage.removeItem("temp-orders");
+    }
+  }, [setOrders]);
+
   const createOrder = useCallback(
     async (orderData) => {
       try {
         const token = localStorage.getItem("auth-token");
-        if (!token) {
-          return { success: false, message: "Veuillez vous connecter" };
-        }
+       if (!token) {
+        
+        const tempOrder = {
+          orderData,
+          cartItems: [...cartItems], 
+          timestamp: Date.now(),
+          tempId: `temp_${Date.now()}`
+        };
+        
+        const existingTempOrders = JSON.parse(
+          localStorage.getItem("temp-orders") || "[]"
+        );
+        existingTempOrders.push(tempOrder);
+        localStorage.setItem("temp-orders", JSON.stringify(existingTempOrders));
+        
+        return { 
+          success: false, 
+          message: "Commande sauvegardée. Connectez-vous pour finaliser",
+          requiresAuth: true 
+        };
+      }
+
+      
+      
 
         const {
           items,
@@ -576,7 +640,9 @@ export const AppContextProvider = (props) => {
   const addComment = async (productId, content) => {
     try {
       const token = localStorage.getItem("auth-token");
-      if (!token) return;
+      if (!token) {
+        throw new Error("Veuillez vous connecter pour laisser un avis");
+      }
       const response = await fetch("http://localhost:5000/api/user/comment", {
         method: "POST",
         headers: {
@@ -715,6 +781,7 @@ export const AppContextProvider = (props) => {
     addComment,
     updateProfile,
     updatePassword,
+    processPendingOrders
   };
 
   return (

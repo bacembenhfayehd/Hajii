@@ -1,16 +1,27 @@
 import { addressDummyData } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
+import { usePersistentOrderForm } from "@/hooks/usePersistentOrderForm";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 const OrderSummary = ({ cartCount, cartItems }) => {
-  const { router, total, address, createOrder, setAddress } = useAppContext();
-  const [selectedAddress, setSelectedAddress] = useState(null);
+  const { router, total, createOrder } = useAppContext();
+  const { formData, updateFormData, clearFormData } = usePersistentOrderForm();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [deliveryType, setDeliveryType] = useState("");
   const [isDeliveryDropdownOpen, setIsDeliveryDropdownOpen] = useState(false);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const { address, deliveryType, paymentMethod, selectedAddress, isSubmitted } =
+    formData;
+
+  const setAddress = (newAddress) => updateFormData({ address: newAddress });
+
+  const setDeliveryType = (type) => updateFormData({ deliveryType: type });
+
+  const setPaymentMethod = (method) =>
+    updateFormData({ paymentMethod: method });
+
+  const setSelectedAddress = (addr) =>
+    updateFormData({ selectedAddress: addr });
 
   // Validation du formulaire
   const isFormValid = () => {
@@ -19,7 +30,7 @@ const OrderSummary = ({ cartCount, cartItems }) => {
     if (!cartItems || cartItems.length === 0) return false;
 
     if (deliveryType === "delivery") {
-      if (!selectedAddress && !address.city) return false;
+      if (!selectedAddress && (!address.city || !isSubmitted)) return false;
       if (!paymentMethod) return false;
     }
 
@@ -28,7 +39,7 @@ const OrderSummary = ({ cartCount, cartItems }) => {
 
   const handleCreateOrder = async () => {
     if (!isFormValid()) {
-      alert("Veuillez remplir tous les champs requis");
+      toast.error("Veuillez remplir tous les champs requis");
       return;
     }
 
@@ -80,9 +91,104 @@ const OrderSummary = ({ cartCount, cartItems }) => {
 
       if (result.success) {
         toast.success("Commande créée avec succès !");
-        // Rediriger vers la page de confirmation ou des commandes
+
+        // 💡 Proposer de garder les infos
+        setTimeout(() => {
+          toast(
+            (t) => (
+              <div className="flex flex-col space-y-3 p-1">
+                <div className="flex items-start space-x-3">
+                  {/* Icône */}
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Contenu */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      Informations de commande
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Souhaitez-vous conserver vos informations pour faciliter
+                      vos prochaines commandes ?
+                    </p>
+                  </div>
+
+                  {/* Bouton de fermeture */}
+                  <button
+                    onClick={() => toast.dismiss(t.id)}
+                    className="flex-shrink-0 ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Boutons d'action */}
+                <div className="flex space-x-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => toast.dismiss(t.id)}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+                  >
+                    Conserver
+                  </button>
+                  <button
+                    onClick={() => {
+                      clearFormData();
+                      toast.dismiss(t.id);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
+                  >
+                    Effacer
+                  </button>
+                </div>
+              </div>
+            ),
+            {
+              duration: 10000,
+              style: {
+                background: "white",
+                color: "#374151",
+                boxShadow:
+                  "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                border: "1px solid #E5E7EB",
+                borderRadius: "12px",
+                padding: "16px",
+                minWidth: "320px",
+              },
+              position: "top-center",
+            }
+          );
+        }, 1000);
+
+        router.push("/profile");
       } else {
-        toast.error(result.message || "Erreur lors de la création de la commande");
+        toast.error(
+          result.message || "Erreur lors de la création de la commande"
+        );
       }
     } catch (error) {
       console.error("Erreur lors de la création de la commande:", error);
@@ -211,15 +317,23 @@ const OrderSummary = ({ cartCount, cartItems }) => {
 
               {isDropdownOpen && (
                 <ul className="absolute w-full bg-white border shadow-md mt-1 z-10 py-1.5">
-                  <li>
-                    {address.city} {address.street} {address.postalCode}{" "}
-                  </li>
+                  {isSubmitted ? (
+                    <li className="px-4 py-2 text-gray-700">
+                      {address.city} {address.street} {address.postalCode}
+                    </li>
+                  ) : (
+                    <li className="px-4 py-2 text-gray-500">
+                      Aucune adresse configurée
+                    </li>
+                  )}
 
                   <li
                     onClick={() => router.push("/add-address")}
-                    className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer text-center"
+                    className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer text-center border-t"
                   >
-                    + Ajouter votre addresse
+                    {isSubmitted
+                      ? "Modifier l'adresse"
+                      : "+ Ajouter votre adresse"}
                   </li>
                 </ul>
               )}

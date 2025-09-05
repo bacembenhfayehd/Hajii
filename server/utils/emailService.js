@@ -12,7 +12,7 @@ export const sendOrderConfirmationEmail = async (order, user) => {
         address: process.env.FROM_EMAIL
       },
       to: user.email,
-      subject: `Confirmation de commande #${order.orderNumber}`,
+      subject: `Réception de commande #${order.orderNumber}`,
       html: orderConfirmationTemplate(order, user.name),
       text: orderConfirmationTextTemplate(order, user.name)
     };

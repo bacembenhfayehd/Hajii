@@ -8,10 +8,17 @@ import { AppContext } from "@/context/AppContext";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import hello from '@/assets/1746348384818-Photoroom.png'
+import { usePersistentOrderForm } from "@/hooks/usePersistentOrderForm";
 
 const AddAddress = () => {
-  const { address, isSubmitted, setAddress, setIsSubmitted } =
-    useContext(AppContext);
+  const { formData, updateFormData } = usePersistentOrderForm();
+  const { address, isSubmitted } = formData;
+
+  const setAddress = (newAddress) => 
+    updateFormData({ address: newAddress });
+  
+  const setIsSubmitted = (submitted) => 
+    updateFormData({ isSubmitted: submitted });
   const onSubmitHandler = () => {
     // Vérifier si un des 3 champs est vide
     if (!address.city || !address.street || !address.postalCode) {

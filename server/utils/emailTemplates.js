@@ -25,7 +25,7 @@ export const orderConfirmationTemplate = (order, userName) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Confirmation de commande</title>
+      <title>Réception de commande</title>
       <style>
         * {
           margin: 0;
@@ -338,7 +338,7 @@ export const orderConfirmationTemplate = (order, userName) => {
         
         <!-- Header -->
         <div class="header">
-          <h1>Confirmation de commande</h1>
+          <h1>Réception de commande</h1>
           <p>Merci pour votre confiance !</p>
         </div>
 
@@ -348,7 +348,7 @@ export const orderConfirmationTemplate = (order, userName) => {
           <!-- Greeting -->
           <div class="greeting">
             <h2>Bonjour ${userName},</h2>
-            <p>Votre commande a été confirmée avec succès. Voici les détails :</p>
+            <p>Nous avons reçu votre commande . Voici les détails :</p>
           </div>
 
           <!-- Order Info -->
@@ -435,7 +435,6 @@ export const orderConfirmationTemplate = (order, userName) => {
             <h4>✅ Prochaines étapes :</h4>
             <ul>
               <li>Votre commande sera traitée dans les plus brefs délais</li>
-              <li>Vous recevrez un email de confirmation d'expédition</li>
               <li>N'hésitez pas à nous contacter pour toute question</li>
             </ul>
           </div>

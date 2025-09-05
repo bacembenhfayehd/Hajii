@@ -3,11 +3,11 @@
 import Loading from "@/components/Loading";
 import { AppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const LoginSignup = () => {
-  const {syncCartAfterLogin} = useContext(AppContext)
+  const {syncCartAfterLogin,processPendingOrders} = useContext(AppContext)
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +15,10 @@ const LoginSignup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,6 +65,14 @@ const LoginSignup = () => {
       setLoading(false);
     }
   };
+
+ 
+useEffect(() => {
+  const token = localStorage.getItem("auth-token");
+  if (token) {
+    processPendingOrders();
+  }
+}, [processPendingOrders]);
 
   if (loading) {
     return <Loading />;
