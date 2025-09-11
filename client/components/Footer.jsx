@@ -53,7 +53,7 @@ const Footer = () => {
           <div>
             <h2 className="font-medium text-gray-900 mb-5">Contactez-nous</h2>
             <div className="text-sm space-y-2">
-              <p>+1-234-567-890</p>
+              <p>+216-58021530</p>
               <p>contact@hajicosmetiques.com</p>
             </div>
           </div>

@@ -5,7 +5,8 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     category: product?.category || 'parfum-homme',
-    price: product?.price || ''
+    price: product?.price || '',
+    stock: product?.stock || ''
   });
 
   useEffect(() => {
@@ -13,7 +14,8 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
       setFormData({
         name: product.name || '',
         category: product.category || 'parfum-homme',
-        price: product.price || ''
+        price: product.price || '',
+        stock: product?.stock || ''
       });
     }
   }, [isOpen, product]);
@@ -98,6 +100,21 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
               type="number"
               name="price"
               value={formData.price}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Stock
+            </label>
+            <input
+              type="number"
+              name="stock"
+              value={formData.stock}
               onChange={handleChange}
               min="0"
               step="0.01"

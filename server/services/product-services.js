@@ -21,6 +21,8 @@ class ProductService {
         throw new Error('Un produit avec ce nom existe déjà');
       }
 
+      
+
     
 
       // Process images
