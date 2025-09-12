@@ -33,6 +33,7 @@ const handleUpdate = async (updatedData) => {
     if (updatedData.name !== selectedProduct.name) changedFields.name = updatedData.name;
     if (updatedData.category !== selectedProduct.category) changedFields.category = updatedData.category;
     if (updatedData.price !== selectedProduct.price) changedFields.price = parseFloat(updatedData.price);
+    if (updatedData.stock !== selectedProduct.stock) changedFields.stock = parseFloat(updatedData.stock);
     
     // Utiliser toast.promise pour UX
     await toast.promise(
