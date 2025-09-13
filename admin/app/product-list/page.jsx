@@ -149,7 +149,7 @@ const handleUpdate = async (updatedData) => {
                     <td className="px-4 py-3 max-sm:hidden">
                       {product.category}
                     </td>
-                    <td className="px-4 py-3">${product.price}</td>
+                    <td className="px-4 py-3">{product.price} TND</td>
                     <td className="px-4 py-3 max-sm:hidden">
                       <div className="flex items-center gap-2">
                         <button
