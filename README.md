@@ -37,7 +37,7 @@ ShopFlow is a complete e-commerce ecosystem that handles everything from invento
 
 ## 📱 UI Showcase
 
-![Application Screenshot](./client/assets/haji.png)
+![Application Screenshot](client/assets/haji.png)
 *Complete user interface covering all major features*
 
 ## ⚡ Key Implementation Highlights
