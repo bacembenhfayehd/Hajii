@@ -35,12 +35,6 @@ ShopFlow is a complete e-commerce ecosystem that handles everything from invento
 - **bcrypt** for secure password hashing
 - **Joi** for server-side validation
 
-## 📱 UI Showcase
-
-![Application Screenshot](client/assets/haji.png)
-*Complete user interface covering all major features*
-
-## ⚡ Key Implementation Highlights
 
 ### 🔒 **Security First**
 - JWT-based authentication with automatic token refresh
@@ -60,29 +54,12 @@ ShopFlow is a complete e-commerce ecosystem that handles everything from invento
 - Order history and tracking
 - Admin analytics dashboard
 
-## 🏗️ Architecture
-
-```
-├── client/                 # Next.js frontend
-│   ├── app/               # App router pages
-│   ├── components/        # Reusable UI components
-│   ├── lib/              # Utilities and configurations
-│   └── public/           # Static assets
-├── server/                # Node.js backend
-│   ├── controllers/       # Route handlers
-│   ├── models/           # MongoDB schemas
-│   ├── middleware/       # Custom middleware
-│   ├── routes/           # API endpoints
-│   └── utils/            # Helper functions
-└── shared/               # Shared types and constants
-```
-
 ## 🚀 Getting Started
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/shopflow
-cd shopflow
+git clone
+
 
 # Install dependencies
 npm install
@@ -95,9 +72,8 @@ cp .env.example .env
 npm run dev          # Starts both frontend and backend
 ```
 
-## 📈 What I Learned
+## 📈 
 
-Building this e-commerce platform taught me valuable lessons about:
 
 - **State Management**: Handling complex cart logic and user sessions across multiple components
 - **Payment Integration**: Working with Stripe webhooks and handling payment failures gracefully  
@@ -112,10 +88,6 @@ Building this e-commerce platform taught me valuable lessons about:
 - [ ] Advanced analytics and reporting
 - [ ] Mobile app development with React Native
 - [ ] Integration with inventory management systems
-
-## 📞 Contact
-
-Built by [Bacem Benhfayedh](https://github.com/bacembenhfayehd) • [LinkedIn](https://linkedin.com/in/bacembenhfayedh) • bacem.benhfayedh@gmail.com
 
 ---
 
