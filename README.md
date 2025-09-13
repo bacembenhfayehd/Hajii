@@ -1,6 +1,4 @@
-# 🛒 Haji - Modern E-commerce Platform
-
-![Project Banner](./assets/project-banner.png)
+# 🛒 Haji cosmetic - Modern E-commerce Platform
 
 > A full-stack e-commerce solution built for modern online retailers. From product discovery to secure checkout, every interaction is crafted for performance and user experience.
 
@@ -39,7 +37,7 @@ ShopFlow is a complete e-commerce ecosystem that handles everything from invento
 
 ## 📱 UI Showcase
 
-![Application Screenshot](./assets/ui-showcase.png)
+![Application Screenshot](./client/assets/haji.png)
 *Complete user interface covering all major features*
 
 ## ⚡ Key Implementation Highlights
