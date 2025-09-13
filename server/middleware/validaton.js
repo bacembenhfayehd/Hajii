@@ -48,13 +48,13 @@ const schemas = {
     category: joi
       .string()
       .valid(
-        "parfum-homme",
-        "parfum-femme",
-        "teint-fond",
-        "rouge-a-levre",
-        "mascara",
-        "vernis-ongles",
-        "autres"
+        "Parfum homme",
+        "Parfum femme",
+        "Teint",
+        "Lèvres",
+        "Yeux",
+        "Ongles",
+        "Autres"
       )
       .required()
       .messages({
@@ -88,13 +88,13 @@ const schemas = {
     category: joi
       .string()
       .valid(
-        "parfum-homme",
-        "parfum-femme",
-        "teint-fond",
-        "rouge-a-levre",
-        "mascara",
-        "vernis-ongles",
-        "autres"
+        "Parfum homme",
+        "Parfum femme",
+        "Teint",
+        "Lèvres",
+        "Yeux",
+        "Ongles",
+        "Autres"
       )
       .optional()
       .messages({
@@ -156,13 +156,13 @@ const schemas = {
     category: joi
       .string()
       .valid(
-        "parfum-homme",
-        "parfum-femme",
-        "teint-fond",
-        "rouge-a-levre",
-        "mascara",
-        "vernis-ongles",
-        "autres"
+        "Parfum homme",
+        "Parfum femme",
+        "Teint",
+        "Lèvres",
+        "Yeux",
+        "Ongles",
+        "Autres"
       )
       .optional(),
     search: joi.string().max(100).optional(),

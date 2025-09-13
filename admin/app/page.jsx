@@ -10,7 +10,7 @@ const AddProduct = () => {
   const [name, setName] = useState("");
   const [stock, setStock] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("parfum-homme");
+  const [category, setCategory] = useState("Parfum homme");
   const [price, setPrice] = useState("");
 
   const { createProduct } = useContext(AdminContext);
@@ -53,7 +53,7 @@ const AddProduct = () => {
     setFiles([]);
     setName("");
     setDescription("");
-    setCategory("parfum-homme");
+    setCategory("Parfum homme");
     setPrice("");
     setStock("");
   }).catch(() => {
@@ -138,13 +138,13 @@ const AddProduct = () => {
               onChange={(e) => setCategory(e.target.value)}
               defaultValue={category}
             >
-              <option value="parfum-homme">Parfum homme</option>
-              <option value="parfum-femme">Parfum femme</option>
-              <option value="teint-fond">Teint fond</option>
-              <option value="rouge-a-levre">Rouge à levre</option>
-              <option value="mascara">Mascara</option>
-              <option value="vernis-ongles">Vernis Ongles</option>
-              <option value="autres">Autres</option>
+              <option value="Parfum homme">Parfum homme</option>
+              <option value="Parfum femme">Parfum femme</option>
+              <option value="Teint">Teint</option>
+              <option value="Lèvres">Lèvres</option>
+              <option value="Yeux">Yeux</option>
+              <option value="Ongles">Ongles</option>
+              <option value="Autres">Autres</option>
             </select>
           </div>
           <div className="flex flex-col gap-1 w-32">

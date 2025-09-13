@@ -21,13 +21,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Product category is required'],
     enum: [
-      'parfum-homme',
-      'parfum-femme', 
-      'teint-fond',
-      'rouge-a-levre',
-      'mascara',
-      'vernis-ongles',
-      'autres'
+      'Parfum homme',
+      'Parfum femme', 
+      'Teint',
+      'Lèvres',
+      'Yeux',
+      'Ongles',
+      'Autres'
     ]
   },
   stock: {
