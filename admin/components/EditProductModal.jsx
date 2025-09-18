@@ -4,7 +4,7 @@ import { Edit, X } from 'lucide-react';
 const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     name: product?.name || '',
-    category: product?.category || 'parfum-homme',
+    category: product?.category || 'Parfum homme',
     price: product?.price || '',
     stock: product?.stock || ''
   });
@@ -13,7 +13,7 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
     if (isOpen && product) {
       setFormData({
         name: product.name || '',
-        category: product.category || 'parfum-homme',
+        category: product.category || 'Parfum homme',
         price: product.price || '',
         stock: product?.stock || ''
       });
@@ -81,13 +81,13 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="parfum-homme">Parfum homme</option>
-              <option value="parfum-femme">Parfum femme</option>
-              <option value="teint-fond">Teint fond</option>
-              <option value="rouge-a-levre">Rouge à lèvre</option>
-              <option value="mascara">Mascara</option>
-              <option value="vernis-ongles">Vernis Ongles</option>
-              <option value="autres">Autres</option>
+              <option value="Parfum homme">Parfum homme</option>
+              <option value="Parfum femme">Parfum femme</option>
+              <option value="Teint">Teint</option>
+              <option value="Lèvres">Lèvres</option>
+              <option value="Yeux">Yeux</option>
+              <option value="Ongles">Ongles</option>
+              <option value="Autres">Autres</option>
             </select>
           </div>
 
