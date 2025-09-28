@@ -34,12 +34,17 @@ export default function ProfilePage() {
     setUserData,
     updateProfile,
     updatePassword,
+    cancelOrder
   } = useContext(AppContext);
   const [showOrders, setShowOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [formData, setFormData] = useState({});
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+const [orderToCancel, setOrderToCancel] = useState(null);
+const [cancelReason, setCancelReason] = useState('');
+const [cancelling, setCancelling] = useState(false);
 
   const statusStyles = {
     delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -145,6 +150,47 @@ export default function ProfilePage() {
       }
     }
   };
+
+
+ const handleCancelOrder = async () => {
+  if (!cancelReason.trim()) {
+    toast.error('Veuillez indiquer une raison d\'annulation');
+    return;
+  }
+
+  // Debug: Check what's in the order object
+  console.log('Order to cancel:', orderToCancel);
+  console.log('Available fields:', Object.keys(orderToCancel));
+
+  setCancelling(true);
+  try {
+    // Try different possible ID fields
+    const orderId = orderToCancel._id || orderToCancel.id || orderToCancel.ref;
+    console.log('Using order ID:', orderId);
+    
+    const result = await cancelOrder(orderId, cancelReason.trim());
+    
+    if (result.success) {
+      toast.success(result.message);
+      setShowCancelModal(false);
+      setOrderToCancel(null);
+      setCancelReason('');
+      fetchProfile();
+    } else {
+      toast.error(result.message);
+    }
+  } catch (error) {
+    console.error('Cancel error:', error);
+    toast.error('Erreur lors de l\'annulation');
+  } finally {
+    setCancelling(false);
+  }
+};
+
+// Add function to check if order can be cancelled
+const canCancelOrder = (order) => {
+  return ['pending', 'confirmed'].includes(order.status);
+};
 
   useEffect(() => {
     fetchProfile();
@@ -329,17 +375,28 @@ export default function ProfilePage() {
                           DT {order.amount}
                         </p>
                         <button
-                          onClick={() =>
-                            setSelectedOrder(
-                              selectedOrder === order.ref ? null : order.ref
-                            )
-                          }
-                          className="text-xs text-neutral-500 hover:text-neutral-700 mt-1"
-                        >
-                          {selectedOrder === order.ref
-                            ? "Masquer les détails"
-                            : "Afficher les détails"}
-                        </button>
+      onClick={() =>
+        setSelectedOrder(
+          selectedOrder === order.ref ? null : order.ref
+        )
+      }
+      className="text-xs text-neutral-500 hover:text-neutral-700"
+    >
+      {selectedOrder === order.ref
+        ? "Masquer les détails"
+        : "Afficher les détails"}
+    </button>
+                         {canCancelOrder(order) && (
+      <button
+        onClick={() => {
+          setOrderToCancel(order);
+          setShowCancelModal(true);
+        }}
+        className="text-xs text-red-500 hover:text-red-700 block"
+      >
+        Annuler commande
+      </button>
+    )}
                       </div>
                     </div>
 
@@ -636,8 +693,72 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+        {showCancelModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white w-full max-w-md border border-neutral-200">
+      <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+        <h3 className="font-medium text-neutral-900 flex items-center gap-2">
+          <XCircle size={18} />
+          Annuler la commande
+        </h3>
+        <button
+          onClick={() => {
+            setShowCancelModal(false);
+            setOrderToCancel(null);
+            setCancelReason('');
+          }}
+          className="text-neutral-400 hover:text-neutral-600"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="p-6 space-y-4">
+        <div>
+          <p className="text-sm text-neutral-600 mb-4">
+            Commande: <span className="font-mono">{orderToCancel?.ref}</span>
+          </p>
+          <label className="text-xs uppercase tracking-wide text-neutral-400 block mb-2">
+            Raison d'annulation *
+          </label>
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            className="w-full border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:border-neutral-500 resize-none"
+            rows="3"
+            placeholder="Indiquez pourquoi vous souhaitez annuler cette commande..."
+            disabled={cancelling}
+          />
+        </div>
+      </div>
+
+      <div className="p-6 border-t border-neutral-100 flex gap-3">
+        <button
+          onClick={() => {
+            setShowCancelModal(false);
+            setOrderToCancel(null);
+            setCancelReason('');
+          }}
+          disabled={cancelling}
+          className="flex-1 border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50 transition-colors disabled:opacity-50"
+        >
+          Fermer
+        </button>
+        <button
+          onClick={handleCancelOrder}
+          disabled={cancelling || !cancelReason.trim()}
+          className="flex-1 bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <XCircle size={14} />
+          {cancelling ? 'Annulation...' : 'Confirmer l\'annulation'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
       <Footer />
     </>
   );
 }
+

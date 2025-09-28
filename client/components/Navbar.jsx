@@ -8,6 +8,7 @@ import { ShoppingCart } from "lucide-react";
 import LOGO1 from '../assets/LOGO1.png'
 import LOGO2 from '../assets/LOGO2.png'
 import ModernSearchOverlay from "./ModernSearchOverlay";
+import AboutModal from "./AboutModal";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -103,10 +104,8 @@ const Navbar = () => {
         <Link href="all-products" className="hover:text-gray-900 transition">
           Boutique
         </Link>
-        <Link href="/" className="hover:text-gray-900 transition">
-          A propos
-        </Link>
-        <Link href="/" className="hover:text-gray-900 transition">
+        <AboutModal />
+        <Link href="/contact" className="hover:text-gray-900 transition">
           Contact
         </Link>
 
