@@ -747,6 +747,58 @@ const [isSubmitted, setIsSubmitted] = useState(false);
     }
   };
 
+  const cancelOrder = useCallback(async (orderId, cancelReason = "") => {
+  try {
+    const token = localStorage.getItem("auth-token");
+    if (!token) {
+      return { success: false, message: "Veuillez vous connecter" };
+    }
+
+    setLoading(true);
+
+    const response = await fetch(`http://localhost:5000/api/order/${orderId}/cancel`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ cancelReason }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Update orders in state
+      setOrders((prevOrders) => 
+        prevOrders.map((order) => 
+          order._id === orderId 
+            ? { ...order, status: 'cancelled', cancelledAt: new Date(), cancelReason }
+            : order
+        )
+      );
+
+      // Update myorders in state if it exists
+      setMyorders((prevOrders) => 
+        prevOrders.map((order) => 
+          order._id === orderId 
+            ? { ...order, status: 'cancelled', cancelledAt: new Date(), cancelReason }
+            : order
+        )
+      );
+
+      return { success: true, message: result.message || "Commande annulée avec succès" };
+    } else {
+      return { success: false, message: result.message || "Erreur lors de l'annulation" };
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'annulation de la commande:", error);
+    return { success: false, message: "Erreur de connexion" };
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
   const value = {
     currency,
     router,
@@ -785,7 +837,8 @@ const [isSubmitted, setIsSubmitted] = useState(false);
     addComment,
     updateProfile,
     updatePassword,
-    processPendingOrders
+    processPendingOrders,
+    cancelOrder
   };
 
   return (
