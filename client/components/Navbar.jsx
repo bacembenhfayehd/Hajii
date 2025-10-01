@@ -101,7 +101,7 @@ const Navbar = () => {
         <Link href="/" className="hover:text-gray-900 transition">
           Accueil
         </Link>
-        <Link href="all-products" className="hover:text-gray-900 transition">
+        <Link href="/all-products" className="hover:text-gray-900 transition">
           Boutique
         </Link>
         <AboutModal />
